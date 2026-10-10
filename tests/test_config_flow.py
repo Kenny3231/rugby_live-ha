@@ -22,9 +22,7 @@ async def test_user_flow_competitions_then_favorites(hass: HomeAssistant) -> Non
         ),
         patch("custom_components.rugby_live.async_setup_entry", AsyncMock(return_value=True)),
     ):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": SOURCE_USER}
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
         assert result["step_id"] == "user"
 
         result = await hass.config_entries.flow.async_configure(
@@ -47,8 +45,6 @@ async def test_user_flow_competitions_then_favorites(hass: HomeAssistant) -> Non
         }
 
         # single_config_entry: a second flow aborts.
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": SOURCE_USER}
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
         assert result["type"] is FlowResultType.ABORT
         assert result["reason"] == "single_instance_allowed"
