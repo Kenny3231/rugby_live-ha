@@ -1,0 +1,28 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Rugby Live",
+        "description": "Choisis les compétitions à suivre.",
+        "data": {
+          "competitions": "Compétitions"
+        }
+      }
+    },
+    "error": {
+      "no_competition": "Sélectionne au moins une compétition."
+    },
+    "abort": {
+      "single_instance_allowed": "Déjà configuré. Une seule configuration possible."
+    }
+  },
+  "selector": {
+    "competitions": {
+      "options": {
+        "top14": "Top 14",
+        "champions_cup": "Champions Cup",
+        "challenge_cup": "Challenge Cup"
+      }
+    }
+  }
+}
