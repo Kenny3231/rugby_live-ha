@@ -216,7 +216,7 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         found: dict[str, Match] = {}
         try:
             for league in self.competitions.values():
-                for offset in range(FIXTURE_DAYS):
+                for offset in range(-3, FIXTURE_DAYS):  # recent results for the matchday
                     day = today + timedelta(days=offset)
                     for match in await self.client.scoreboard(league, day):
                         found[match.id] = match
@@ -372,7 +372,18 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         now = now or dt_util.utcnow()
         tl = self.timelines.get(match.id)
         if tl is None:
-            visible = Visible(None, 0, 0, [], None, None, False, {"home": [], "away": []})
+            # Fixtures only (past or future match days): the scoreboard is all we have.
+            status = None if match.state == "pre" else match.status
+            visible = Visible(
+                status,
+                match.home_score,
+                match.away_score,
+                [],
+                None,
+                None,
+                False,
+                {"home": [], "away": []},
+            )
         else:
             sinbin = self.options[CONF_SINBIN_MINUTES] * 60
             visible = tl.visible(now, self.delay, match.kickoff, sinbin)
@@ -383,6 +394,21 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         mine = [m for m in self.matches.values() if team_id in (m.home.id, m.away.id)]
         order = {"in": 0, "pre": 1, "post": 2}
         return min(mine, key=lambda m: (order.get(m.state, 3), m.kickoff), default=None)
+
+    def matchday(self, match: Match) -> list[Match]:
+        """Matches of the same competition round as `match`. ESPN has no round number:
+        a round is a run of the league's matches with less than 36 h between kickoffs."""
+        pool = {**self.fixtures, **self.matches}
+        league = sorted(
+            (m for m in pool.values() if m.league_id == match.league_id), key=lambda m: m.kickoff
+        )
+        rounds: list[list[Match]] = []
+        for m in league:
+            if rounds and m.kickoff - rounds[-1][-1].kickoff < timedelta(hours=36):
+                rounds[-1].append(m)
+            else:
+                rounds.append([m])
+        return next((r for r in rounds if any(m.id == match.id for m in r)), [match])
 
     def followed_match(self) -> Match | None:
         """Match picked with the select entity. Automatic: a favourite's live or upcoming

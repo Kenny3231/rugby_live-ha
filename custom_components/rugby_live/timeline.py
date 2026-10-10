@@ -71,6 +71,10 @@ class Visible:
     minute_source: str | None
     stoppage: bool  # minute capped at 40/80: show "40+" / "80+"
     sin_bin: dict[str, list[TimelineEvent]] = field(default_factory=dict)  # side -> cards
+    provisional: bool = False  # score taken from a play the scoreboard has not confirmed yet
+
+
+SCORING = (PlayType.TRY, PlayType.CONVERSION, PlayType.PENALTY_GOAL, PlayType.DROP_GOAL)
 
 
 def _visible(item: TimelineEvent | Change, cutoff: datetime) -> bool:
@@ -220,8 +224,23 @@ class MatchTimeline:
 
         # Score from scoreboard snapshots only: score-after on plays is unreliable
         # (a conversion was recorded as 2-0 right after a 5-0 try on 2026-10-10).
-        scores = [c.value for c in self.scores if _visible(c, cutoff)]
-        home, away = scores[-1] if scores else (0, 0)
+        scores = [c for c in self.scores if _visible(c, cutoff)]
+        home, away = scores[-1].value if scores else (0, 0)
+        since = scores[-1].observed_at if scores else None
+        # Pre-shot score: a scoring play seen after the last scoreboard change and whose
+        # score-after is ahead of it shows its score at once, flagged provisional until the
+        # scoreboard confirms it. A scoreboard change after the play wins (cancelled try).
+        ahead = [
+            ev
+            for ev in events
+            if ev.type in SCORING
+            and (since is None or ev.observed_at >= since)
+            and ev.home_score + ev.away_score > home + away
+        ]
+        provisional = bool(ahead)
+        if ahead:
+            last = max(ahead, key=lambda ev: (ev.period, ev.clock))
+            home, away = max(home, last.home_score), max(away, last.away_score)
 
         minute, source, stoppage = self._minute(events, statuses, status, cutoff, kickoff)
         sin_bin: dict[str, list[TimelineEvent]] = {"home": [], "away": []}
@@ -235,7 +254,7 @@ class MatchTimeline:
                     and ev.clock + sinbin_seconds > game_now
                 ):
                     sin_bin[side].append(ev)
-        return Visible(status, home, away, events, minute, source, stoppage, sin_bin)
+        return Visible(status, home, away, events, minute, source, stoppage, sin_bin, provisional)
 
     def _minute(
         self,

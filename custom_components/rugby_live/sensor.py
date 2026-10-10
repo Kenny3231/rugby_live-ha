@@ -138,6 +138,7 @@ class CompetitionNextMatchSensor(RugbyLiveEntity, SensorEntity):
 
 class TeamStatusSensor(TeamEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.ENUM
+    _unrecorded_attributes = frozenset({"matchday"})
     _attr_options = STATUS_OPTIONS
 
     def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str | None, name: str) -> None:
@@ -165,6 +166,10 @@ class TeamStatusSensor(TeamEntity, SensorEntity):
             "home_away": "home" if home else "away",
             **team_attrs(team, "team"),
             **team_attrs(opponent, "opponent"),
+            "matchday": [
+                match_summary(self, self.coordinator.view(m))
+                for m in self.coordinator.matchday(match)
+            ],
         }
 
 
@@ -191,6 +196,7 @@ class TeamScoreSensor(TeamEntity, SensorEntity):
             "away_score": vis.away_score,
             "team_score": vis.home_score if home else vis.away_score,
             "opponent_score": vis.away_score if home else vis.home_score,
+            "provisional": vis.provisional,
             "counters": counters(view),
             **team_attrs(match.home, "home"),
             **team_attrs(match.away, "away"),

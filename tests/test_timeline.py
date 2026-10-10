@@ -163,3 +163,14 @@ def test_minute_follows_play_clock_not_scheduled_kickoff() -> None:
     tl.ingest_plays([play("1", PlayType.PENALTY_GOAL, "143737", 120, 0, 3)], seen)
     vis = tl.visible(seen + timedelta(seconds=60), 0, scheduled)
     assert (vis.minute, vis.minute_source) == (4, "play_clock")
+
+
+def test_score_is_pre_shot_then_confirmed() -> None:
+    tl = MatchTimeline("604400", HOME, AWAY)
+    tl.ingest_score(3, 3, at(0))
+    tl.ingest_plays([play("1", PlayType.TRY, AWAY, 884, 3, 8)], at(10))
+    vis = tl.visible(at(10), 0, KICKOFF)
+    assert (vis.home_score, vis.away_score, vis.provisional) == (3, 8, True)
+    tl.ingest_score(3, 8, at(20))
+    vis = tl.visible(at(20), 0, KICKOFF)
+    assert (vis.home_score, vis.away_score, vis.provisional) == (3, 8, False)

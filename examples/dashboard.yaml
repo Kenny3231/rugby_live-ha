@@ -351,6 +351,7 @@ views:
     - sensor.top_14_matchs_en_direct
     - sensor.champions_cup_matchs_en_direct
     - sensor.challenge_cup_matchs_en_direct
+    - sensor.stade_toulousain_prochain_match
     styles:
       card:
       - padding: '0'
@@ -364,7 +365,7 @@ views:
     custom_fields:
       direct: |-
         [[[
-        const css = "<style>\n.rl-wrap{position:relative;height:calc(100vh - var(--header-height, 56px));min-height:420px;overflow:hidden;\n  background:radial-gradient(circle at 50% 30%,#1e293b,#020617);color:#fff;display:flex;flex-direction:column}\n.rl-tick{height:5vh;min-height:34px;background:#0b1220;border-bottom:3px solid #dc2626;overflow:hidden;\n  white-space:nowrap;display:flex;align-items:center;font-size:2.4vh}\n.rl-tick-in{display:inline-block;padding-left:100%;animation:rl-marq linear infinite}\n@keyframes rl-marq{from{transform:translateX(0)}to{transform:translateX(-100%)}}\n.rl-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5vh}\n.rl-comp{font-size:2.4vh;letter-spacing:.4em;color:#94a3b8}\n.rl-row{display:flex;align-items:center;justify-content:center;gap:4vw;width:100%}\n.rl-team{display:flex;flex-direction:column;align-items:center;gap:1.5vh;width:28vw}\n.rl-logo{height:24vh;width:24vh;object-fit:contain;filter:drop-shadow(0 6px 18px rgba(0,0,0,.7))}\n.rl-init{height:24vh;width:24vh;border-radius:50%;display:flex;align-items:center;justify-content:center;\n  font-size:8vh;font-weight:900}\n.rl-name{font-size:4vh;font-weight:800;text-align:center;text-transform:uppercase}\n.rl-score{font-size:18vh;font-weight:900;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap}\n.rl-state{font-size:3.2vh;font-weight:700}\n.rl-live{background:#dc2626;border-radius:999px;padding:.4vh 1.6vh;margin-right:1.2vh;animation:rl-pulse 1.4s infinite}\n@keyframes rl-pulse{50%{opacity:.45}}\n.rl-last{font-size:3vh;color:#cbd5e1}\n.rl-chan{font-size:2.4vh;color:#4ade80;font-weight:700}\n.rl-ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;\n  overflow:hidden;background:radial-gradient(circle,var(--c) 0%,rgba(0,0,0,.94) 72%);\n  animation:rl-ov 8s ease forwards;z-index:5}\n@keyframes rl-ov{0%{opacity:0;transform:scale(1.3)}6%{opacity:1;transform:scale(1)}85%{opacity:1}\n  100%{opacity:0;visibility:hidden}}\n.rl-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}\n.rl-burst{position:absolute;width:160vmax;height:160vmax;\n  background:repeating-conic-gradient(rgba(255,255,255,.13) 0deg 8deg,transparent 8deg 22deg);animation:rl-spin 8s linear}\n@keyframes rl-spin{to{transform:rotate(200deg)}}\n.rl-ovlogo{position:relative;height:26vh;animation:rl-pop 1s ease both}\n@keyframes rl-pop{0%{transform:scale(0) rotate(-200deg)}70%{transform:scale(1.25)}100%{transform:scale(1)}}\n.rl-ovtxt{position:relative;font-size:17vh;font-weight:900;letter-spacing:.04em;text-align:center;\n  text-shadow:0 0 40px var(--c),0 8px 0 #000;animation:rl-shake .45s ease 4}\n@keyframes rl-shake{25%{transform:rotate(-3deg) scale(1.08)}75%{transform:rotate(3deg) scale(1.08)}}\n.rl-ovsub{position:relative;font-size:4.5vh;font-weight:800;margin-top:2vh;text-shadow:0 3px 0 #000}\n@media (prefers-reduced-motion:reduce){.rl-burst,.rl-ovtxt,.rl-ovlogo,.rl-tick-in,.rl-live{animation:none}}\n</style>";
+        const css = "<style>\n.rl-wrap{position:relative;height:calc(100vh - var(--header-height, 56px));min-height:420px;overflow:hidden;\n  background:radial-gradient(circle at 50% 30%,#1e293b,#020617);color:#fff;display:flex;flex-direction:column}\n.rl-tick{height:5vh;min-height:34px;background:#0b1220;border-bottom:3px solid #dc2626;overflow:hidden;\n  white-space:nowrap;display:flex;align-items:center;font-size:2.4vh}\n.rl-tick-in{display:inline-block;padding-left:100%;animation:rl-marq linear infinite}\n@keyframes rl-marq{from{transform:translateX(0)}to{transform:translateX(-100%)}}\n.rl-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5vh}\n.rl-comp{font-size:2.4vh;letter-spacing:.4em;color:#94a3b8}\n.rl-row{display:flex;align-items:center;justify-content:center;gap:4vw;width:100%}\n.rl-team{display:flex;flex-direction:column;align-items:center;gap:1.5vh;width:28vw}\n.rl-logo{height:24vh;width:24vh;object-fit:contain;filter:drop-shadow(0 6px 18px rgba(0,0,0,.7))}\n.rl-init{height:24vh;width:24vh;border-radius:50%;display:flex;align-items:center;justify-content:center;\n  font-size:8vh;font-weight:900}\n.rl-name{font-size:4vh;font-weight:800;text-align:center;text-transform:uppercase}\n.rl-score{font-size:18vh;font-weight:900;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap}\n.rl-state{font-size:3.2vh;font-weight:700}\n.rl-live{background:#dc2626;border-radius:999px;padding:.4vh 1.6vh;margin-right:1.2vh;animation:rl-pulse 1.4s infinite}\n@keyframes rl-pulse{50%{opacity:.45}}\n.rl-last{font-size:3vh;color:#cbd5e1}\n.rl-chan{font-size:2.4vh;color:#4ade80;font-weight:700}\n.rl-wm{position:absolute;inset:0;margin:auto;height:72vh;max-width:80vw;object-fit:contain;opacity:.06;filter:grayscale(1) brightness(2);pointer-events:none;z-index:0}\n.rl-tick,.rl-main{position:relative;z-index:1}\n.rl-prov{color:#fde68a}\n.rl-provtag{font-size:1.8vh;color:#fbbf24;letter-spacing:.2em}\n.rl-next{margin-top:2vh;padding:1.6vh 3vh;border:1px solid #334155;border-radius:2vh;background:rgba(15,23,42,.7);text-align:center;font-size:2.8vh}\n.rl-next b{color:#fff}.rl-next small{display:block;color:#94a3b8;letter-spacing:.3em;font-size:1.8vh}\n.rl-ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;\n  overflow:hidden;background:radial-gradient(circle,var(--c) 0%,rgba(0,0,0,.94) 72%);\n  animation:rl-ov 8s ease forwards;z-index:5}\n@keyframes rl-ov{0%{opacity:0;transform:scale(1.3)}6%{opacity:1;transform:scale(1)}85%{opacity:1}\n  100%{opacity:0;visibility:hidden}}\n.rl-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}\n.rl-burst{position:absolute;width:160vmax;height:160vmax;\n  background:repeating-conic-gradient(rgba(255,255,255,.13) 0deg 8deg,transparent 8deg 22deg);animation:rl-spin 8s linear}\n@keyframes rl-spin{to{transform:rotate(200deg)}}\n.rl-ovlogo{position:relative;height:26vh;animation:rl-pop 1s ease both}\n@keyframes rl-pop{0%{transform:scale(0) rotate(-200deg)}70%{transform:scale(1.25)}100%{transform:scale(1)}}\n.rl-ovtxt{position:relative;font-size:17vh;font-weight:900;letter-spacing:.04em;text-align:center;\n  text-shadow:0 0 40px var(--c),0 8px 0 #000;animation:rl-shake .45s ease 4}\n@keyframes rl-shake{25%{transform:rotate(-3deg) scale(1.08)}75%{transform:rotate(3deg) scale(1.08)}}\n.rl-ovsub{position:relative;font-size:4.5vh;font-weight:800;margin-top:2vh;text-shadow:0 3px 0 #000}\n@media (prefers-reduced-motion:reduce){.rl-burst,.rl-ovtxt,.rl-ovlogo,.rl-tick-in,.rl-live{animation:none}}\n</style>";
 
         const F = 'sensor.match_suivi';
         const st = states[F + '_statut_du_match'];
@@ -374,6 +375,8 @@ views:
         const mn = states[F + '_minute'];
         const le = states[F + '_dernier_evenement'];
         const COMP = {top14: 'TOP 14', champions_cup: 'CHAMPIONS CUP', challenge_cup: 'CHALLENGE CUP'};
+        const WM = {top14: 'Top 14', champions_cup: 'Champions Cup', challenge_cup: 'Challenge Cup'}[sa.competition];
+        const wm = WM ? `<img class="rl-wm" src="/local/images/rugby/competitions/${encodeURIComponent(WM)}.svg" onerror="this.remove()">` : '';
         const L = {scheduled: 'À venir', first_half: '1re mi-temps', half_time: 'Mi-temps', second_half: '2e mi-temps',
           extra_time: 'Prolongations', finished: 'Terminé', postponed: 'Reporté', cancelled: 'Annulé', unknown: ''};
         const LIVE = ['first_half', 'half_time', 'second_half', 'extra_time'];
@@ -382,10 +385,13 @@ views:
         const hhmm = (d) => d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}).replace(':', 'h');
 
         const tick = [];
-        for (const id of ['sensor.top_14_matchs_en_direct', 'sensor.champions_cup_matchs_en_direct', 'sensor.challenge_cup_matchs_en_direct']) {
-          const m = states[id];
-          for (const x of (m && m.attributes.matches) || []) {
-            if (x.status === 'scheduled') tick.push(`${x.home_name} – ${x.away_name} <b>${hhmm(new Date(x.kickoff))}</b>`);
+        const DAYS = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
+        let pool = sa.matchday;
+        if (!pool) { pool = []; for (const id of ['sensor.top_14_matchs_en_direct', 'sensor.champions_cup_matchs_en_direct', 'sensor.challenge_cup_matchs_en_direct']) { const m = states[id]; pool.push(...((m && m.attributes.matches) || [])); } }
+        {
+          for (const x of pool) {
+            const k = new Date(x.kickoff);
+            if (x.status === 'scheduled') tick.push(`${x.home_name} – ${x.away_name} <b>${DAYS[k.getDay()]} ${hhmm(k)}</b>`);
             else tick.push(`${x.home_name} <b>${x.home_score} - ${x.away_score}</b> ${x.away_name} <span style="color:#f87171">${LIVE.includes(x.status) ? (x.minute || '') : 'Fin'}</span>`);
           }
         }
@@ -400,16 +406,31 @@ views:
           const live = LIVE.includes(s);
           const minute = mn && mn.attributes.display ? mn.attributes.display : '';
           const state = live ? `<span class="rl-live">LIVE</span>${minute}` : (s === 'scheduled' ? `Coup d'envoi ${hhmm(new Date(sa.kickoff))}` : L[s] || s);
-          const score = s === 'scheduled' ? '<span style="color:#64748b">VS</span>' : `${a.home_score ?? 0}<span style="color:#475569"> - </span>${a.away_score ?? 0}`;
-          const last = le && le.state && le.state !== 'unknown' ? `<div class="rl-last">${le.state}</div>` : '';
+          const prov = a.provisional ? ' rl-prov' : '';
+          const score = s === 'scheduled' ? '<span style="color:#64748b">VS</span>' : `<span class="${prov}">${a.home_score ?? 0}</span><span style="color:#475569"> - </span><span class="${prov}">${a.away_score ?? 0}</span>`;
+          const nowMin = mn && !isNaN(parseInt(mn.state)) ? parseInt(mn.state) : null;
+          const evMin = le && le.attributes ? le.attributes.minute : null;
+          const fresh = live && nowMin !== null && evMin != null && nowMin - evMin <= 3;
+          const last = fresh && le.state && le.state !== 'unknown' ? `<div class="rl-last">${le.state}</div>` : '';
+          const provtag = a.provisional ? '<div class="rl-provtag">SCORE EN ATTENTE DE VALIDATION</div>' : '';
+          let next = '';
+          if (s === 'finished') {
+            const nx = states['sensor.stade_toulousain_prochain_match'];
+            if (nx && nx.state && !['unknown', 'unavailable'].includes(nx.state)) {
+              const n = nx.attributes, d = new Date(nx.state);
+              const when = d.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'}) + ' • ' + hhmm(d);
+              const vs = n.home_away === 'home' ? `${n.team_name} – ${n.opponent_name}` : `${n.opponent_name} – ${n.team_name}`;
+              next = `<div class="rl-next"><small>PROCHAIN MATCH • ${COMP[n.competition] || ''}</small><b>${vs}</b><br>${when}${n.channel ? ' • 📺 ' + n.channel : ''}</div>`;
+            }
+          }
           main = `<div class="rl-comp">${COMP[sa.competition] || ''}</div>
             <div class="rl-row">
               <div class="rl-team">${big(a.home_logo, a.home_name, a.home_color)}<div class="rl-name">${a.home_name || ''}</div></div>
               <div class="rl-score">${score}</div>
               <div class="rl-team">${big(a.away_logo, a.away_name, a.away_color)}<div class="rl-name">${a.away_name || ''}</div></div>
             </div>
-            <div class="rl-state">${state}</div>${last}
-            ${sa.channel ? `<div class="rl-chan">📺 ${sa.channel}</div>` : ''}`;
+            ${provtag}<div class="rl-state">${state}</div>${last}
+            ${sa.channel && s !== 'finished' ? `<div class="rl-chan">📺 ${sa.channel}</div>` : ''}${next}`;
         }
 
         let overlay = '';
@@ -438,5 +459,5 @@ views:
             <div class="rl-ovtxt" style="${d}">${TXT[t] || t}</div>
             <div class="rl-ovsub">${who}</div></div>`;
         }
-        return css + `<div class="rl-wrap">${ticker}<div class="rl-main">${main}</div>${overlay}</div>`;
+        return css + `<div class="rl-wrap">${wm}${ticker}<div class="rl-main">${main}</div>${overlay}</div>`;
         ]]]

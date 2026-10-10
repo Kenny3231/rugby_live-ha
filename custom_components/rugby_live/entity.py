@@ -175,6 +175,7 @@ def match_summary(entity: RugbyLiveEntity, view: MatchView) -> dict[str, Any]:
         "minute": minute_display(view),
         "home_score": vis.home_score,
         "away_score": vis.away_score,
+        "provisional": vis.provisional,
         **team_attrs(match.home, "home"),
         **team_attrs(match.away, "away"),
         "last_event": entity.describe(match, last) if last else None,
