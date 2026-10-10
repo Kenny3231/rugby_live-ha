@@ -71,6 +71,19 @@ Aucun appareil ni entité créé ou supprimé par match : les `entity_id` ne cha
 | `sensor.<team>_next_match` | Timestamp du prochain match. |
 | `event.<team>_match_event` | `EventEntity`, `event_types` : `kickoff`, `try`, `conversion`, `penalty_goal`, `drop_goal`, `yellow_card`, `red_card`, `substitution`, `half_time`, `second_half`, `full_time`, `revoked`. Attribut `side`. |
 
+### Appareil « Match suivi » (ajout demandé par David le 10/10)
+
+- `select.rugby_live_match_suivi` : **Automatique** (match de l'équipe favorite, sinon un match en direct, sinon le prochain) ou n'importe quel match du jour. Choix restauré au redémarrage.
+- Mêmes entités que pour une équipe favorite (statut, score, minute, dernier événement, en match, carton jaune, `event`), mais pour le match choisi, avec des **identifiants fixes** (`sensor.match_suivi_*`, `event.match_suivi_evenement_du_match`) : la base des futures animations lumières / panneau LED.
+- Le bouton Calibrer se cale sur le match suivi.
+
+### Écarts assumés par rapport à la première version de cette spec
+
+- **Un seul coordinator** pour toutes les ligues (un client limité à 1 req/s, une horloge) au lieu d'un par ligue.
+- Le retard n'est **pas** dans les options : `number.rugby_live_retard` est l'unique source de vérité.
+- Calendrier : balayage de 14 jours, jour par jour, toutes les 6 h (ESPN refuse les plages de dates).
+- Identifiant de ligue ESPN personnalisé : **pas encore** implémenté (non nécessaire pour les 3 compétitions).
+
 ### Événements du bus : **tous les matchs**
 
 - `rugby_live_event` (retardé), `rugby_live_event_raw` (immédiat), `rugby_live_event_revoked` (événement déjà publié puis annulé).
