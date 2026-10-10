@@ -1,0 +1,60 @@
+{
+  "_note": "REAL data (ESPN site API scoreboard, Top 14 / 270559, 2026-10-10), TRUNCATED to 2 of 6 events and to the fields the integration needs. Event 604399 captured live at second half with score 23-15; its 'details' keep only the scoring plays and 1 substitution. Event 604396 is a not-yet-started match (state 'pre', playByPlayAvailable false). Note displayClock '1'' is WRONG in play (see docs/01-API-FINDINGS.md).",
+  "leagues": [ { "id": "8005", "name": "French Top 14", "midsizeName": "270559", "slug": "270559" } ],
+  "day": { "date": "2026-10-10" },
+  "events": [
+    {
+      "id": "604399",
+      "date": "2026-10-10T12:30Z",
+      "name": "Stade Francais Paris vs Montpellier Herault",
+      "shortName": "STA VS MON",
+      "competitions": [
+        {
+          "id": "604399",
+          "date": "2026-10-10T12:30Z",
+          "playByPlayAvailable": true,
+          "venue": { "id": "26063", "fullName": "Stade Jean Bouin", "address": { "city": "Paris", "state": "France" } },
+          "competitors": [
+            { "id": "25921", "homeAway": "home", "score": "23", "team": { "id": "25921", "name": "Stade Francais Paris", "abbreviation": "STA", "displayName": "Stade Francais Paris", "logo": "https://a.espncdn.com/i/teamlogos/rugby/teams/500/25921.png" } },
+            { "id": "25918", "homeAway": "away", "score": "15", "team": { "id": "25918", "name": "Montpellier Herault", "abbreviation": "MON", "displayName": "Montpellier Herault", "logo": "https://a.espncdn.com/i/teamlogos/rugby/teams/500/25918.png" } }
+          ],
+          "situation": { "lastPlay": { "id": "1895562", "type": { "id": "2", "text": "conversion" }, "team": { "id": "25921" }, "athletesInvolved": [ { "id": "292739", "fullName": "Louis Carbonel", "position": "FH" } ] } },
+          "status": { "clock": 0.0, "displayClock": "1'", "period": 2, "type": { "id": "26", "name": "STATUS_SECOND_HALF", "state": "in", "completed": false, "description": "Second Half", "detail": "1'", "shortDetail": "1'" } },
+          "details": [
+            { "type": { "id": "7", "text": "player substituted" }, "clock": { "value": 487.0, "displayValue": "9'" }, "team": { "id": "25921" }, "athletesInvolved": [ { "id": "292583", "fullName": "Yoan Tanga", "position": "FL" } ] },
+            { "type": { "id": "1", "text": "try" }, "clock": { "value": 1049.0, "displayValue": "18'" }, "team": { "id": "25921" }, "athletesInvolved": [ { "id": "117466", "fullName": "Paul Alo-Emile", "position": "P" } ] },
+            { "type": { "id": "3", "text": "penalty goal" }, "clock": { "value": 1278.0, "displayValue": "22'" }, "team": { "id": "25918" }, "athletesInvolved": [ { "id": "270445", "fullName": "Domingo Miotti", "position": "FH" } ] },
+            { "type": { "id": "1", "text": "try" }, "clock": { "value": 1384.0, "displayValue": "24'" }, "team": { "id": "25918" }, "athletesInvolved": [ { "id": "305590", "fullName": "Justo Piccardo", "position": "C" } ] },
+            { "type": { "id": "1", "text": "try" }, "clock": { "value": 1639.0, "displayValue": "28'" }, "team": { "id": "25921" }, "athletesInvolved": [ { "id": "295116", "fullName": "Tani Vili", "position": "C" } ] },
+            { "type": { "id": "3", "text": "penalty goal" }, "clock": { "value": 1865.0, "displayValue": "32'" }, "team": { "id": "25921" }, "athletesInvolved": [ { "id": "292739", "fullName": "Louis Carbonel", "position": "FH" } ] },
+            { "type": { "id": "1", "text": "try" }, "clock": { "value": 1986.0, "displayValue": "34'" }, "team": { "id": "25918" }, "athletesInvolved": [ { "id": "134149", "fullName": "Stuart Hogg", "position": "FB" } ] },
+            { "type": { "id": "2", "text": "conversion" }, "clock": { "value": 2032.0, "displayValue": "34'" }, "team": { "id": "25918" }, "athletesInvolved": [ { "id": "270445", "fullName": "Domingo Miotti", "position": "FH" } ] },
+            { "type": { "id": "3", "text": "penalty goal" }, "clock": { "value": 2247.0, "displayValue": "38'" }, "team": { "id": "25921" }, "athletesInvolved": [ { "id": "292739", "fullName": "Louis Carbonel", "position": "FH" } ] },
+            { "type": { "id": "1", "text": "try" }, "clock": { "value": 3142.0, "displayValue": "53'" }, "team": { "id": "25921" }, "athletesInvolved": [ { "id": "295124", "fullName": "Alivereti Duguivalu", "position": "C" } ] },
+            { "type": { "id": "2", "text": "conversion" }, "clock": { "value": 3179.0, "displayValue": "53'" }, "team": { "id": "25921" }, "athletesInvolved": [ { "id": "292739", "fullName": "Louis Carbonel", "position": "FH" } ] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "604396",
+      "date": "2026-10-10T14:35Z",
+      "name": "Perpignan vs Vannes",
+      "shortName": "USA VS VAN",
+      "competitions": [
+        {
+          "id": "604396",
+          "date": "2026-10-10T14:35Z",
+          "playByPlayAvailable": false,
+          "venue": { "id": "16610", "fullName": "Stade Aime Giral", "address": { "city": "Perpignan", "state": "France" } },
+          "competitors": [
+            { "id": "25920", "homeAway": "home", "score": "0", "team": { "id": "25920", "name": "Perpignan", "abbreviation": "USA", "displayName": "Perpignan", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/usa.png" } },
+            { "id": "289337", "homeAway": "away", "score": "0", "team": { "id": "289337", "name": "Vannes", "abbreviation": "VAN", "displayName": "Vannes", "logo": "https://a.espncdn.com/i/teamlogos/countries/500/van.png" } }
+          ],
+          "status": { "clock": 0.0, "displayClock": "1'", "period": 0, "type": { "id": "1", "name": "STATUS_SCHEDULED", "state": "pre", "completed": false, "description": "Scheduled", "detail": "Sat, October 10th at 10:35 AM EDT", "shortDetail": "10/10 - 10:35 AM EDT" } },
+          "details": []
+        }
+      ]
+    }
+  ]
+}

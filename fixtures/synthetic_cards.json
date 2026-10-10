@@ -1,0 +1,51 @@
+{
+  "_SYNTHETIC": true,
+  "_note": "SYNTHETIC test data. No yellow/red card was present in the sampled match. Structure copied from real try/penalty plays (same fields) with type ids 5 'yellow card' and 6 'red card', which ARE real type ids observed on other matches (70 yellow, 6 red). To be replaced by a real capture as soon as one is recorded (jalon M6). Scenario: yellow card Montpellier at 45', try Stade Francais at 53', red card Stade Francais at 66', drop goal Montpellier at 75'. Athlete ids are fake (99000xx).",
+  "count": 4,
+  "items": [
+    {
+      "id": "9900001", "sequenceNumber": "0",
+      "type": { "id": "5", "text": "yellow card" },
+      "awayScore": 15, "homeScore": 16,
+      "period": { "number": 2 },
+      "clock": { "value": 2700.0, "displayValue": "45'" },
+      "addedClock": { "value": 0, "displayValue": "45'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25918?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/9900001?lang=en&region=us" } } ]
+    },
+    {
+      "id": "9900002", "sequenceNumber": "0",
+      "type": { "id": "1", "text": "try" },
+      "awayScore": 15, "homeScore": 21,
+      "period": { "number": 2 },
+      "clock": { "value": 3142.0, "displayValue": "53'" },
+      "addedClock": { "value": 0, "displayValue": "53'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25921?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/9900002?lang=en&region=us" } } ]
+    },
+    {
+      "id": "9900003", "sequenceNumber": "0",
+      "type": { "id": "6", "text": "red card" },
+      "awayScore": 15, "homeScore": 21,
+      "period": { "number": 2 },
+      "clock": { "value": 3960.0, "displayValue": "66'" },
+      "addedClock": { "value": 0, "displayValue": "66'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25921?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/9900003?lang=en&region=us" } } ]
+    },
+    {
+      "id": "9900004", "sequenceNumber": "0",
+      "type": { "id": "4", "text": "drop goal" },
+      "awayScore": 18, "homeScore": 21,
+      "period": { "number": 2 },
+      "clock": { "value": 4500.0, "displayValue": "75'" },
+      "addedClock": { "value": 0, "displayValue": "75'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25918?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/9900004?lang=en&region=us" } } ]
+    }
+  ]
+}

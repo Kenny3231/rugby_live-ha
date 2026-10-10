@@ -1,0 +1,142 @@
+{
+  "_note": "REAL data (ESPN core API), Stade Francais Paris vs Montpellier Herault, Top 14, 2026-10-10, captured at ~63'. TRUNCATED: only the 10 scoring plays and 1 substitution kept (the live endpoint returned 38 plays, count=38). Refs switched from http to https. Final score of the kept plays: 23-15.",
+  "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/events/604399/competitions/604399/plays?lang=en&region=us",
+  "count": 11,
+  "pageIndex": 1,
+  "pageSize": 300,
+  "pageCount": 1,
+  "items": [
+    {
+      "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/events/604399/competitions/604399/plays/1895456?lang=en&region=us",
+      "id": "1895456", "sequenceNumber": "0",
+      "type": { "id": "7", "text": "player substituted" },
+      "awayScore": 0, "homeScore": 0,
+      "period": { "number": 1 },
+      "clock": { "value": 487.0, "displayValue": "9'" },
+      "addedClock": { "value": 0, "displayValue": "9'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25921?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/292583?lang=en&region=us" } } ]
+    },
+    {
+      "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/events/604399/competitions/604399/plays/1895463?lang=en&region=us",
+      "id": "1895463", "sequenceNumber": "0",
+      "type": { "id": "1", "text": "try" },
+      "awayScore": 0, "homeScore": 5,
+      "period": { "number": 1 },
+      "clock": { "value": 1049.0, "displayValue": "18'" },
+      "addedClock": { "value": 0, "displayValue": "18'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25921?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/117466?lang=en&region=us" } } ]
+    },
+    {
+      "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/events/604399/competitions/604399/plays/1895471?lang=en&region=us",
+      "id": "1895471", "sequenceNumber": "0",
+      "type": { "id": "3", "text": "penalty goal" },
+      "awayScore": 3, "homeScore": 5,
+      "period": { "number": 1 },
+      "clock": { "value": 1278.0, "displayValue": "22'" },
+      "addedClock": { "value": 0, "displayValue": "22'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25918?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/270445?lang=en&region=us" } } ]
+    },
+    {
+      "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/events/604399/competitions/604399/plays/1895474?lang=en&region=us",
+      "id": "1895474", "sequenceNumber": "0",
+      "type": { "id": "1", "text": "try" },
+      "awayScore": 8, "homeScore": 5,
+      "period": { "number": 1 },
+      "clock": { "value": 1384.0, "displayValue": "24'" },
+      "addedClock": { "value": 0, "displayValue": "24'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25918?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/305590?lang=en&region=us" } } ]
+    },
+    {
+      "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/events/604399/competitions/604399/plays/1895477?lang=en&region=us",
+      "id": "1895477", "sequenceNumber": "0",
+      "type": { "id": "1", "text": "try" },
+      "awayScore": 8, "homeScore": 10,
+      "period": { "number": 1 },
+      "clock": { "value": 1639.0, "displayValue": "28'" },
+      "addedClock": { "value": 0, "displayValue": "28'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25921?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/295116?lang=en&region=us" } } ]
+    },
+    {
+      "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/events/604399/competitions/604399/plays/1895495?lang=en&region=us",
+      "id": "1895495", "sequenceNumber": "0",
+      "type": { "id": "3", "text": "penalty goal" },
+      "awayScore": 8, "homeScore": 13,
+      "period": { "number": 1 },
+      "clock": { "value": 1865.0, "displayValue": "32'" },
+      "addedClock": { "value": 0, "displayValue": "32'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25921?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/292739?lang=en&region=us" } } ]
+    },
+    {
+      "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/events/604399/competitions/604399/plays/1895496?lang=en&region=us",
+      "id": "1895496", "sequenceNumber": "0",
+      "type": { "id": "1", "text": "try" },
+      "awayScore": 13, "homeScore": 13,
+      "period": { "number": 1 },
+      "clock": { "value": 1986.0, "displayValue": "34'" },
+      "addedClock": { "value": 0, "displayValue": "34'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25918?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/134149?lang=en&region=us" } } ]
+    },
+    {
+      "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/events/604399/competitions/604399/plays/1895497?lang=en&region=us",
+      "id": "1895497", "sequenceNumber": "0",
+      "type": { "id": "2", "text": "conversion" },
+      "awayScore": 15, "homeScore": 13,
+      "period": { "number": 1 },
+      "clock": { "value": 2032.0, "displayValue": "34'" },
+      "addedClock": { "value": 0, "displayValue": "34'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25918?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/270445?lang=en&region=us" } } ]
+    },
+    {
+      "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/events/604399/competitions/604399/plays/1895508?lang=en&region=us",
+      "id": "1895508", "sequenceNumber": "0",
+      "type": { "id": "3", "text": "penalty goal" },
+      "awayScore": 15, "homeScore": 16,
+      "period": { "number": 1 },
+      "clock": { "value": 2247.0, "displayValue": "38'" },
+      "addedClock": { "value": 0, "displayValue": "38'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25921?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/292739?lang=en&region=us" } } ]
+    },
+    {
+      "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/events/604399/competitions/604399/plays/1895561?lang=en&region=us",
+      "id": "1895561", "sequenceNumber": "0",
+      "type": { "id": "1", "text": "try" },
+      "awayScore": 15, "homeScore": 21,
+      "period": { "number": 2 },
+      "clock": { "value": 3142.0, "displayValue": "53'" },
+      "addedClock": { "value": 0, "displayValue": "53'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25921?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/295124?lang=en&region=us" } } ]
+    },
+    {
+      "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/events/604399/competitions/604399/plays/1895562?lang=en&region=us",
+      "id": "1895562", "sequenceNumber": "0",
+      "type": { "id": "2", "text": "conversion" },
+      "awayScore": 15, "homeScore": 23,
+      "period": { "number": 2 },
+      "clock": { "value": 3179.0, "displayValue": "53'" },
+      "addedClock": { "value": 0, "displayValue": "53'" },
+      "priority": false, "modified": "2026-10-10T14:11Z",
+      "team": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/leagues/270559/seasons/2027/teams/25921?lang=en&region=us" },
+      "participants": [ { "order": 1, "type": "player", "athlete": { "$ref": "https://sports.core.api.espn.com/v2/sports/rugby/athletes/292739?lang=en&region=us" } } ]
+    }
+  ]
+}

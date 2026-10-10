@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / frontend
+node_modules/
+frontend/.vite/
+
+# Dev & local
+.env
+.DS_Store
+
+# Suivi du projet : JAMAIS dans le dépôt (le dossier central est hors dépôt)
+TRACKING*/
+tracking/
+captures/
+_local-tracking/
+
+# Tooling
+.coverage
+htmlcov/
+.claude/
