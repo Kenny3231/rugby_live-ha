@@ -1,0 +1,231 @@
+# Rugby Live: example dashboard (Sections view). Needs custom:button-card for the hero card.
+# Replace stade_toulousain with your favourite team entity prefix.
+title: Rugby
+views:
+- title: Rugby
+  path: rugby
+  icon: mdi:rugby
+  type: sections
+  max_columns: 4
+  sections:
+  - type: grid
+    column_span: 2
+    cards:
+    - type: heading
+      heading: Stade Toulousain
+      icon: mdi:rugby
+    - type: custom:button-card
+      entity: sensor.stade_toulousain_statut_du_match
+      show_name: false
+      show_icon: false
+      show_state: false
+      tap_action:
+        action: none
+      styles:
+        card:
+        - padding: 12px
+        - border-radius: 16px
+        - background-color: '#1f2937'
+        - border: '1px solid #374151'
+        - color: '#fff'
+        grid:
+        - grid-template-areas: '"hero"'
+      custom_fields:
+        hero: |-
+          [[[
+          const st = entity.state;
+          const sc = states['sensor.stade_toulousain_score'] || {attributes: {}};
+          const mn = states['sensor.stade_toulousain_minute'];
+          const nx = states['sensor.stade_toulousain_prochain_match'];
+          const ev = states['sensor.stade_toulousain_dernier_evenement'];
+          const L = {scheduled:'À venir',first_half:'1re mi-temps',half_time:'Mi-temps',second_half:'2e mi-temps',extra_time:'Prolongations',finished:'Terminé',postponed:'Reporté',cancelled:'Annulé',unknown:'—'};
+          const logo = (url, name, color) => url
+            ? `<img src="${url}" style="height:64px;width:64px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))">`
+            : `<div style="height:64px;width:64px;border-radius:50%;background:${color || '#374151'};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;color:#fff">${(name || '?').slice(0, 3).toUpperCase()}</div>`;
+          const team = (url, name, color) => `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:34%">${logo(url, name, color)}<span style="font-size:13px;font-weight:600;text-align:center">${name || ''}</span></div>`;
+          if (st === 'no_match' || st === 'unavailable') {
+            if (!nx || !nx.state || nx.state === 'unknown' || nx.state === 'unavailable') return '<div style="padding:16px;color:#9ca3af">Aucun match prévu</div>';
+            const a = nx.attributes, d = new Date(nx.state);
+            const when = d.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'}) + ' • ' + d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}).replace(':', 'h');
+            const home = a.home_away === 'home';
+            const h = home ? [a.team_logo, a.team_name, a.team_color] : [a.opponent_logo, a.opponent_name, a.opponent_color];
+            const w = home ? [a.opponent_logo, a.opponent_name, a.opponent_color] : [a.team_logo, a.team_name, a.team_color];
+            return `<div style="padding:4px 8px 12px">
+              <div style="text-align:center;font-size:11px;letter-spacing:1px;color:#9ca3af;text-transform:uppercase">Prochain match • ${a.competition === 'top14' ? 'Top 14' : a.competition === 'champions_cup' ? 'Champions Cup' : 'Challenge Cup'}</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">${team(...h)}<div style="font-size:22px;font-weight:800;color:#9ca3af">VS</div>${team(...w)}</div>
+              <div style="text-align:center;margin-top:10px;font-size:13px;color:#4ade80;font-weight:600">${when}</div>
+              <div style="text-align:center;font-size:11px;color:#9ca3af">${a.venue || ''}</div></div>`;
+          }
+          const a = sc.attributes;
+          const live = ['first_half', 'half_time', 'second_half', 'extra_time'].includes(st);
+          const minute = mn && mn.attributes.display ? mn.attributes.display : '';
+          const badge = live
+            ? `<span style="background:#dc2626;color:#fff;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">● LIVE</span> <span style="font-weight:700">${minute}</span>`
+            : `<span style="color:#9ca3af;font-size:12px;font-weight:600">${L[st] || st}</span>`;
+          const score = st === 'scheduled' ? '<span style="color:#9ca3af">VS</span>' : `${a.home_score ?? 0} <span style="color:#6b7280">-</span> ${a.away_score ?? 0}`;
+          const last = ev && ev.state && ev.state !== 'unknown' ? `<div style="text-align:center;margin-top:10px;font-size:12px;color:#d1d5db">${ev.state}</div>` : '';
+          return `<div style="padding:4px 8px 12px">
+            <div style="text-align:center">${badge}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+              ${team(a.home_logo, a.home_name, a.home_color)}
+              <div style="font-size:34px;font-weight:800;white-space:nowrap">${score}</div>
+              ${team(a.away_logo, a.away_name, a.away_color)}
+            </div>${last}</div>`;
+          ]]]
+      grid_options:
+        columns: 12
+    - type: tile
+      entity: binary_sensor.stade_toulousain_carton_jaune_en_cours
+      name: Carton jaune en cours
+      visibility:
+      - condition: state
+        entity: binary_sensor.stade_toulousain_carton_jaune_en_cours
+        state: 'on'
+      grid_options:
+        columns: 12
+    - type: markdown
+      title: Fil du match
+      content: |-
+        {% set evs = state_attr('sensor.stade_toulousain_dernier_evenement', 'events') or [] %}
+        {% set icons = {'try': '🏉', 'conversion': '🎯', 'penalty_goal': '🎯', 'drop_goal': '🎯', 'yellow_card': '🟨', 'red_card': '🟥'} %}
+        {% set shown = evs | rejectattr('type', 'in', ['sub_on', 'sub_off']) | list %}
+        {% if shown %}
+        {% for e in shown | reverse %}
+        {{ icons.get(e.type, '•') }} **{{ e.minute }}'** {{ e.label }} — {{ e.player or e.team }} <small>({{ e.team }})</small>
+        {% endfor %}
+        {% else %}
+        _Aucun événement pour l'instant._
+        {% endif %}
+      visibility:
+      - condition: state
+        entity: sensor.stade_toulousain_statut_du_match
+        state_not: no_match
+      grid_options:
+        columns: 12
+  - type: grid
+    column_span: 2
+    cards:
+    - type: heading
+      heading: Tous les matchs
+      icon: mdi:scoreboard
+    - type: markdown
+      content: |-
+        {% set comps = [('sensor.top_14_matchs_en_direct', 'Top 14'), ('sensor.champions_cup_matchs_en_direct', 'Champions Cup'), ('sensor.challenge_cup_matchs_en_direct', 'Challenge Cup')] %}
+        {% set labels = {'scheduled': '', 'first_half': '1re MT', 'half_time': 'MT', 'second_half': '2e MT', 'extra_time': 'Prol.', 'finished': 'Fin', 'postponed': 'Reporté', 'cancelled': 'Annulé', 'unknown': ''} %}
+        {% set days = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'] %}
+        {% for entity, title in comps %}
+        {% set ms = state_attr(entity, 'matches') or [] %}
+        {% if ms %}
+        ### {{ title }}
+        <table width="100%">
+        {% for m in ms %}
+        {% set k = as_local(as_datetime(m.kickoff)) %}
+        {% set live = m.status in ['first_half', 'half_time', 'second_half', 'extra_time'] %}
+        <tr>
+        <td width="16%"><small>{% if m.status == 'scheduled' %}{{ days[k.weekday()] }} {{ k.strftime('%H:%M') }}{% elif live %}<font color="#ef4444"><b>{{ m.minute or labels[m.status] }}</b></font>{% else %}{{ labels[m.status] }}{% endif %}</small></td>
+        <td align="right" width="32%">{{ m.home_name }} {% if m.home_logo %}<img src="{{ m.home_logo }}" width="20" height="20">{% endif %}</td>
+        <td align="center" width="18%"><b>{% if m.status == 'scheduled' %}-{% else %}{{ m.home_score }} - {{ m.away_score }}{% endif %}</b></td>
+        <td width="34%">{% if m.away_logo %}<img src="{{ m.away_logo }}" width="20" height="20">{% endif %} {{ m.away_name }}</td>
+        </tr>
+        {% endfor %}
+        </table>
+        {% endif %}
+        {% endfor %}
+      grid_options:
+        columns: 12
+  - type: grid
+    column_span: 2
+    cards:
+    - type: heading
+      heading: Calendrier
+      icon: mdi:calendar
+    - type: calendar
+      initial_view: listWeek
+      entities:
+      - calendar.top_14_matchs
+      - calendar.champions_cup_matchs
+      - calendar.challenge_cup_matchs
+      - calendar.calendrier_allrugby_2
+      grid_options:
+        columns: 12
+  - type: grid
+    column_span: 2
+    cards:
+    - type: heading
+      heading: Retard (anti-spoil)
+      icon: mdi:timer-sand
+    - type: tile
+      entity: number.rugby_live_retard
+      name: Retard
+      features:
+      - type: numeric-input
+        style: buttons
+      grid_options:
+        columns: 12
+    - type: button
+      name: -5 s
+      icon: mdi:timer-minus-outline
+      show_state: false
+      tap_action:
+        action: perform-action
+        perform_action: rugby_live.set_delay
+        data:
+          seconds: -5
+          relative: true
+      grid_options:
+        columns: 3
+        rows: 1
+    - type: button
+      name: -1 s
+      icon: mdi:timer-minus-outline
+      show_state: false
+      tap_action:
+        action: perform-action
+        perform_action: rugby_live.set_delay
+        data:
+          seconds: -1
+          relative: true
+      grid_options:
+        columns: 3
+        rows: 1
+    - type: button
+      name: +1 s
+      icon: mdi:timer-plus-outline
+      show_state: false
+      tap_action:
+        action: perform-action
+        perform_action: rugby_live.set_delay
+        data:
+          seconds: 1
+          relative: true
+      grid_options:
+        columns: 3
+        rows: 1
+    - type: button
+      name: +5 s
+      icon: mdi:timer-plus-outline
+      show_state: false
+      tap_action:
+        action: perform-action
+        perform_action: rugby_live.set_delay
+        data:
+          seconds: 5
+          relative: true
+      grid_options:
+        columns: 3
+        rows: 1
+    - type: tile
+      entity: button.rugby_live_calibrer_le_retard
+      name: Calibrer (au moment où l'action passe à la TV)
+      tap_action:
+        action: perform-action
+        perform_action: button.press
+        target:
+          entity_id: button.rugby_live_calibrer_le_retard
+      grid_options:
+        columns: 12
+    - type: tile
+      entity: sensor.rugby_live_etat_de_l_api
+      name: Source ESPN
+      grid_options:
+        columns: 12
