@@ -107,7 +107,7 @@ GET https://sports.core.api.espn.com/v2/sports/rugby/athletes/{athleteId}
 
 ### Latence mesurée (Top 14 J6, 10/10, 4 matchs, 1ʳᵉ mi-temps)
 
-- ESPN a reçu les événements **15 à 80 s avant** le push officiel LNR, sur presque tous les événements comparés.
+- Sur le match complet (39 scores comparés, première apparition de chaque score) : ESPN **en avance dans 35 cas sur 39**, de **+43 s en médiane** (de −20 s à plusieurs minutes ; la LNR accuse parfois plusieurs minutes de retard). ESPN était interrogé toutes les 15 s, d'où une marge de ±15 s.
 - Passage d'ESPN en `STATUS_HALFTIME` par rapport à l'heure de fin de période saisie par la LNR : **+42 s, +55 s, +63 s**. Ordre de grandeur du retard d'ESPN sur le terrain : **~40–65 s** (l'heure LNR est elle-même saisie à la main).
 - Captures brutes : `TRACKING_DIR/captures/2026-10-10_top14_j6/`.
 
