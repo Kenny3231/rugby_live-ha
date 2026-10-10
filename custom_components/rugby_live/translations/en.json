@@ -37,7 +37,8 @@
           "postmatch_grace": "Follow-up after full time",
           "sinbin_minutes": "Yellow card length",
           "show_substitutions": "Publish substitutions as events",
-          "broadcast_calendar": "TV broadcast calendar (event location = channel)"
+          "broadcast_calendar": "TV broadcast calendar (event location = channel)",
+          "animation_seconds": "Animation length"
         }
       }
     },
@@ -93,6 +94,25 @@
       },
       "last_event": {
         "name": "Last event"
+      },
+      "animation": {
+        "name": "Animation",
+        "state": {
+          "idle": "Idle",
+          "kickoff": "Kickoff",
+          "try": "Try",
+          "conversion": "Conversion",
+          "penalty_goal": "Penalty goal",
+          "drop_goal": "Drop goal",
+          "yellow_card": "Yellow card",
+          "red_card": "Red card",
+          "substitution": "Substitution",
+          "half_time": "Half time",
+          "second_half": "Second half",
+          "extra_time": "Extra time",
+          "full_time": "Full time",
+          "revoked": "Cancelled event"
+        }
       }
     },
     "binary_sensor": {

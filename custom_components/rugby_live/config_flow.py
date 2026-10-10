@@ -18,6 +18,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .api import EspnClient, EspnError
 from .const import (
     COMPETITIONS,
+    CONF_ANIMATION_SECONDS,
     CONF_BROADCAST_CALENDAR,
     CONF_COMPETITIONS,
     CONF_FAVORITES,
@@ -39,6 +40,7 @@ NUMBER_OPTIONS = {
     CONF_POLL_IDLE: (300, 3600, "s"),
     CONF_POSTMATCH_GRACE: (0, 120, "min"),
     CONF_SINBIN_MINUTES: (5, 20, "min"),
+    CONF_ANIMATION_SECONDS: (5, 60, "s"),
 }
 
 

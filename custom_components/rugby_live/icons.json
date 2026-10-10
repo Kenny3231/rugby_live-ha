@@ -21,6 +21,9 @@
       },
       "last_event": {
         "default": "mdi:message-badge"
+      },
+      "animation": {
+        "default": "mdi:movie-open-play"
       }
     },
     "binary_sensor": {

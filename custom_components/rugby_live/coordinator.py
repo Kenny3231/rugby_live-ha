@@ -17,14 +17,17 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.event import async_track_point_in_utc_time
+from homeassistant.helpers.event import async_call_later, async_track_point_in_utc_time
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
 from .api import EspnClient, EspnError, names_match
 from .const import (
+    ANIMATED_EVENTS,
+    ANIMATION_QUEUE_MAX,
     COMPETITIONS,
+    CONF_ANIMATION_SECONDS,
     CONF_BROADCAST_CALENDAR,
     CONF_COMPETITIONS,
     CONF_FAVORITES,
@@ -110,6 +113,9 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         )
         self.delay: float = 0.0
         self.followed_id: str | None = None  # None: automatic
+        self.animation: dict[str, Any] | None = None  # playing now on the followed match
+        self._anim_queue: list[dict[str, Any]] = []
+        self._anim_unsub: CALLBACK_TYPE | None = None
         self.matches: dict[str, Match] = {}  # current scoreboards (today / next match day)
         self.fixtures: dict[str, Match] = {}  # FIXTURE_DAYS ahead
         self.channels: dict[str, str] = {}  # match id -> TV channel (broadcast calendar)
@@ -139,6 +145,9 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         if self._release_unsub:
             self._release_unsub()
             self._release_unsub = None
+        if self._anim_unsub:
+            self._anim_unsub()
+            self._anim_unsub = None
 
     def competition_of(self, match: Match) -> str:
         return next((k for k, lid in self.competitions.items() if lid == match.league_id), "")
@@ -209,6 +218,7 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
                 payload = {**self._payload(match, ev, now), "revoked_type": ev.type.value}
                 self.hass.bus.async_fire(EVENT_REVOKED, payload)
                 async_dispatcher_send(self.hass, SIGNAL_EVENT, {**payload, "type": "revoked"})
+                self._animate({**payload, "type": "revoked"})
 
     async def _async_scan_fixtures(self) -> None:
         """Upcoming matches, day by day (ESPN refuses date ranges: docs/01)."""
@@ -296,6 +306,7 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
                 if payload is not None:
                     self.hass.bus.async_fire(EVENT_DELAYED, payload)
                     async_dispatcher_send(self.hass, SIGNAL_EVENT, payload)
+                    self._animate(payload)
         self._schedule_release()
 
     def _schedule_release(self) -> None:
@@ -310,6 +321,35 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
     def _on_release_timer(self, _now: datetime) -> None:
         self._release_unsub = None
         self._release(dt_util.utcnow())
+        self.async_update_listeners()
+
+    def _animate(self, payload: dict[str, Any]) -> None:
+        """Queue an animation for the followed match: each one plays its full duration."""
+        followed = self.followed_match()
+        if followed is None or payload.get("match_id") != followed.id:
+            return
+        if payload["type"] not in ANIMATED_EVENTS or len(self._anim_queue) >= ANIMATION_QUEUE_MAX:
+            return
+        self._anim_queue.append(payload)
+        if self.animation is None:
+            self._next_animation()
+
+    @callback
+    def _next_animation(self, _now: datetime | None = None) -> None:
+        self._anim_unsub = None
+        if not self._anim_queue:
+            self.animation = None
+        else:
+            now = dt_util.utcnow()
+            seconds = self.options[CONF_ANIMATION_SECONDS]
+            self.animation = {
+                **self._anim_queue.pop(0),
+                "started_at": now.isoformat(),
+                "ends_at": (now + timedelta(seconds=seconds)).isoformat(),
+                "duration": seconds,
+                "queued": len(self._anim_queue),
+            }
+            self._anim_unsub = async_call_later(self.hass, seconds, self._next_animation)
         self.async_update_listeners()
 
     @callback

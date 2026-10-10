@@ -37,7 +37,8 @@
           "postmatch_grace": "Suivi après le coup de sifflet final",
           "sinbin_minutes": "Durée du carton jaune",
           "show_substitutions": "Publier les remplacements comme événements",
-          "broadcast_calendar": "Calendrier des diffusions TV (lieu de l'événement = chaîne)"
+          "broadcast_calendar": "Calendrier des diffusions TV (lieu de l'événement = chaîne)",
+          "animation_seconds": "Durée d'une animation"
         }
       }
     },
@@ -93,6 +94,25 @@
       },
       "last_event": {
         "name": "Dernier événement"
+      },
+      "animation": {
+        "name": "Animation",
+        "state": {
+          "idle": "Aucune",
+          "kickoff": "Coup d'envoi",
+          "try": "Essai",
+          "conversion": "Transformation",
+          "penalty_goal": "Pénalité",
+          "drop_goal": "Drop",
+          "yellow_card": "Carton jaune",
+          "red_card": "Carton rouge",
+          "substitution": "Remplacement",
+          "half_time": "Mi-temps",
+          "second_half": "Reprise",
+          "extra_time": "Prolongations",
+          "full_time": "Fin du match",
+          "revoked": "Événement annulé"
+        }
       }
     },
     "binary_sensor": {

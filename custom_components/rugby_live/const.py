@@ -15,7 +15,8 @@ CONF_POLL_IDLE = "poll_idle"
 CONF_POSTMATCH_GRACE = "postmatch_grace"
 CONF_SINBIN_MINUTES = "sinbin_minutes"
 CONF_SHOW_SUBSTITUTIONS = "show_substitutions"
-CONF_BROADCAST_CALENDAR = "broadcast_calendar"  # optional calendar whose location is the TV channel
+CONF_BROADCAST_CALENDAR = "broadcast_calendar"
+CONF_ANIMATION_SECONDS = "animation_seconds"  # optional calendar whose location is the TV channel
 
 DEFAULT_OPTIONS = {
     CONF_POLL_LIVE: 10,
@@ -25,6 +26,7 @@ DEFAULT_OPTIONS = {
     CONF_POSTMATCH_GRACE: 15,
     CONF_SINBIN_MINUTES: 10,
     CONF_SHOW_SUBSTITUTIONS: False,
+    CONF_ANIMATION_SECONDS: 20,
 }
 
 # Competition key -> ESPN league id (verified in docs/01-API-FINDINGS.md).
@@ -52,3 +54,20 @@ FIXTURE_DAYS = 14
 FIXTURE_REFRESH = timedelta(hours=6)
 MAX_DELAY = 300
 EVENTS_ATTRIBUTE_CAP = 60
+
+# Event types that play an animation on the followed match, one after the other.
+ANIMATED_EVENTS = (
+    "kickoff",
+    "try",
+    "conversion",
+    "penalty_goal",
+    "drop_goal",
+    "yellow_card",
+    "red_card",
+    "half_time",
+    "second_half",
+    "extra_time",
+    "full_time",
+    "revoked",
+)
+ANIMATION_QUEUE_MAX = 6

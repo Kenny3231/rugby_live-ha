@@ -10,6 +10,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import ANIMATED_EVENTS
 from .coordinator import MatchView, RugbyLiveConfigEntry, RugbyLiveCoordinator
 from .entity import (
     GLOBAL_DEVICE,
@@ -54,7 +55,13 @@ async def async_setup_entry(
     # "Match suivi" device: same entities, following the match chosen in the select.
     entities += [
         cls(coordinator, None, "")
-        for cls in (TeamStatusSensor, TeamScoreSensor, TeamMinuteSensor, TeamLastEventSensor)
+        for cls in (
+            TeamStatusSensor,
+            TeamScoreSensor,
+            TeamMinuteSensor,
+            TeamLastEventSensor,
+            AnimationSensor,
+        )
     ]
     async_add_entities(entities)
 
@@ -281,3 +288,43 @@ class TeamNextMatchSensor(TeamEntity, SensorEntity):
             **team_attrs(team, "team"),
             **team_attrs(opponent, "opponent"),
         }
+
+
+class AnimationSensor(TeamEntity, SensorEntity):
+    """Animation playing now on the followed match ("idle" otherwise). Each animation
+    lasts the configured duration (20 s by default); later ones wait in a queue. Screen,
+    LED panel and lights can all follow this one entity."""
+
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = ["idle", *ANIMATED_EVENTS]
+
+    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str | None, name: str) -> None:
+        super().__init__(coordinator, team_id, name, "animation")
+
+    @property
+    def native_value(self) -> str:
+        anim = self.coordinator.animation
+        return anim["type"] if anim else "idle"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        anim = self.coordinator.animation
+        if anim is None:
+            return {}
+        keys = (
+            "team_id",
+            "team_name",
+            "side",
+            "player",
+            "minute",
+            "score_home",
+            "score_away",
+            "home_name",
+            "away_name",
+            "favorite",
+            "started_at",
+            "ends_at",
+            "duration",
+            "queued",
+        )
+        return {k: anim.get(k) for k in keys}
