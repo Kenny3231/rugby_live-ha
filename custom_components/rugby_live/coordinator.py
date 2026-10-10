@@ -15,15 +15,17 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
-from .api import EspnClient, EspnError
+from .api import EspnClient, EspnError, names_match
 from .const import (
     COMPETITIONS,
+    CONF_BROADCAST_CALENDAR,
     CONF_COMPETITIONS,
     CONF_FAVORITES,
     CONF_POLL_IDLE,
@@ -110,6 +112,7 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         self.followed_id: str | None = None  # None: automatic
         self.matches: dict[str, Match] = {}  # current scoreboards (today / next match day)
         self.fixtures: dict[str, Match] = {}  # FIXTURE_DAYS ahead
+        self.channels: dict[str, str] = {}  # match id -> TV channel (broadcast calendar)
         self.timelines: dict[str, MatchTimeline] = {}
         self._seen_this_run: set[str] = set()
         self._finished_at: dict[str, datetime] = {}
@@ -222,7 +225,37 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
             self._fixtures_at = None  # retry at next poll
             return
         self.fixtures = found
+        await self._async_load_channels()
         self.async_update_listeners()
+
+    async def _async_load_channels(self) -> None:
+        """TV channels from the optional broadcast calendar: the event location of the
+        calendar entry starting within 15 min of kickoff and naming one of the teams."""
+        calendar = self.options.get(CONF_BROADCAST_CALENDAR)
+        if not calendar:
+            return
+        try:
+            response = await self.hass.services.async_call(
+                "calendar",
+                "get_events",
+                {"entity_id": calendar, "duration": {"days": FIXTURE_DAYS}},
+                blocking=True,
+                return_response=True,
+            )
+        except HomeAssistantError as err:
+            _LOGGER.debug("Broadcast calendar unavailable: %s", err)
+            return
+        events = (response or {}).get(calendar, {}).get("events", [])
+        for match in {**self.fixtures, **self.matches}.values():
+            for event in events:
+                start = dt_util.parse_datetime(str(event.get("start", "")))
+                if (
+                    event.get("location")
+                    and start is not None
+                    and abs(start - match.kickoff) <= timedelta(minutes=15)
+                    and names_match(event.get("summary", ""), match.home.name, match.away.name)
+                ):
+                    self.channels[match.id] = event["location"]
 
     def _prune(self) -> None:
         self.timelines = {k: v for k, v in self.timelines.items() if k in self.matches}

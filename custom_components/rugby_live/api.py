@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 import time
+import unicodedata
 from datetime import date, datetime
 from typing import Any
 
@@ -81,6 +83,19 @@ def team_logo(team_id: str, espn_logo: str | None) -> str | None:
     if espn_logo and "/countries/" not in espn_logo:
         return espn_logo
     return None
+
+
+def _stems(text: str) -> set[str]:
+    """5-letter stems of the words of a name: 'Stade Toulousain' and 'Toulouse' share 'toulo'."""
+    plain = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode().lower()
+    return {w[:5] for w in re.findall(r"[a-z0-9]+", plain) if len(w) >= 3}
+
+
+def names_match(summary: str, *team_names: str) -> bool:
+    """True when a calendar event title mentions one of the teams (TV channel lookup)."""
+    title = _stems(summary)
+    generic = {"stade", "rugby", "union", "club", "olymp", "sport"}
+    return any((_stems(name) - generic) & title for name in team_names)
 
 
 def _int(value: Any, default: int = 0) -> int:

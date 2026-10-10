@@ -18,6 +18,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .api import EspnClient, EspnError
 from .const import (
     COMPETITIONS,
+    CONF_BROADCAST_CALENDAR,
     CONF_COMPETITIONS,
     CONF_FAVORITES,
     CONF_POLL_IDLE,
@@ -168,4 +169,7 @@ class RugbyLiveOptionsFlow(OptionsFlowWithReload):
         fields[vol.Required(CONF_SHOW_SUBSTITUTIONS, default=current[CONF_SHOW_SUBSTITUTIONS])] = (
             selector.BooleanSelector()
         )
+        calendar = current.get(CONF_BROADCAST_CALENDAR)
+        key = vol.Optional(CONF_BROADCAST_CALENDAR, description={"suggested_value": calendar})
+        fields[key] = selector.EntitySelector(selector.EntitySelectorConfig(domain="calendar"))
         return self.async_show_form(step_id="init", data_schema=vol.Schema(fields), errors=errors)

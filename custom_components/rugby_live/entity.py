@@ -178,4 +178,5 @@ def match_summary(entity: RugbyLiveEntity, view: MatchView) -> dict[str, Any]:
         **team_attrs(match.home, "home"),
         **team_attrs(match.away, "away"),
         "last_event": entity.describe(match, last) if last else None,
+        "channel": entity.coordinator.channels.get(match.id),
     }

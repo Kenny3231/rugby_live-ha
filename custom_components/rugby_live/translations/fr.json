@@ -36,7 +36,8 @@
           "poll_idle": "Interrogation sans match",
           "postmatch_grace": "Suivi après le coup de sifflet final",
           "sinbin_minutes": "Durée du carton jaune",
-          "show_substitutions": "Publier les remplacements comme événements"
+          "show_substitutions": "Publier les remplacements comme événements",
+          "broadcast_calendar": "Calendrier des diffusions TV (lieu de l'événement = chaîne)"
         }
       }
     },

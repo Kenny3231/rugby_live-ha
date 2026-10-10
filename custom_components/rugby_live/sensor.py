@@ -130,6 +130,7 @@ class CompetitionNextMatchSensor(RugbyLiveEntity, SensorEntity):
         return {
             "match_id": match.id,
             "venue": match.venue,
+            "channel": self.coordinator.channels.get(match.id),
             **team_attrs(match.home, "home"),
             **team_attrs(match.away, "away"),
         }
@@ -160,6 +161,7 @@ class TeamStatusSensor(TeamEntity, SensorEntity):
             "competition": view.competition,
             "kickoff": match.kickoff.isoformat(),
             "venue": match.venue,
+            "channel": self.coordinator.channels.get(match.id),
             "home_away": "home" if home else "away",
             **team_attrs(team, "team"),
             **team_attrs(opponent, "opponent"),
@@ -268,6 +270,7 @@ class TeamNextMatchSensor(TeamEntity, SensorEntity):
             "match_id": match.id,
             "competition": self.coordinator.competition_of(match),
             "venue": match.venue,
+            "channel": self.coordinator.channels.get(match.id),
             "home_away": "home" if home else "away",
             **team_attrs(team, "team"),
             **team_attrs(opponent, "opponent"),

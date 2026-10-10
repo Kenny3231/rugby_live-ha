@@ -5,7 +5,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from custom_components.rugby_live.api import parse_plays, parse_scoreboard, parse_status, team_logo
+from custom_components.rugby_live.api import (
+    names_match,
+    parse_plays,
+    parse_scoreboard,
+    parse_status,
+    team_logo,
+)
 from custom_components.rugby_live.models import MatchStatus, PlayType
 
 FIXTURES = Path(__file__).parents[1] / "fixtures"
@@ -51,6 +57,15 @@ def test_parsers_tolerate_garbage() -> None:
     assert parse_status({"type": {"name": "STATUS_NEW", "state": "post"}})[0] is (
         MatchStatus.FINISHED
     )
+
+
+def test_names_match_calendar_titles() -> None:
+    """Real allrugby titles vs ESPN team names (TV channel lookup)."""
+    assert names_match("Top 14 - Toulouse vs Bayonne", "Stade Toulousain", "Bayonne")
+    assert names_match("Champions Cup - Toulouse vs Exeter", "Stade Toulousain", "Exeter Chiefs")
+    assert names_match("Top 14 - Paris vs Lyon", "Stade Francais Paris", "Lyon")
+    assert not names_match("Top 14 - Toulouse vs Bayonne", "Clermont Auvergne", "Bordeaux Begles")
+    assert not names_match("Top 14 - Toulouse vs Bayonne", "Stade Francais Paris", "Racing 92")
 
 
 def test_team_logo_prefers_official_and_drops_country_flags() -> None:

@@ -1,5 +1,6 @@
-# Rugby Live: example dashboard (Sections view). Needs custom:button-card for the hero cards.
-# Replace stade_toulousain with your favourite team entity prefix.
+# Rugby Live: example dashboard. Views: Rugby (Sections) and Direct (full-screen panel with event animations).
+# Needs custom:button-card. Replace stade_toulousain with your favourite team prefix.
+# Optional animation videos: /config/www/rugby_live/anim/<type>.mp4 and <type>_toulouse.mp4 (see docs/05-ANIMATIONS.md).
 title: Rugby
 views:
 - title: Rugby
@@ -54,7 +55,7 @@ views:
               <div style="text-align:center;font-size:11px;letter-spacing:1px;color:#9ca3af;text-transform:uppercase">Prochain match • ${a.competition === 'top14' ? 'Top 14' : a.competition === 'champions_cup' ? 'Champions Cup' : 'Challenge Cup'}</div>
               <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">${team(...h)}<div style="font-size:22px;font-weight:800;color:#9ca3af">VS</div>${team(...w)}</div>
               <div style="text-align:center;margin-top:10px;font-size:13px;color:#4ade80;font-weight:600">${when}</div>
-              <div style="text-align:center;font-size:11px;color:#9ca3af">${a.venue || ''}</div></div>`;
+              <div style="text-align:center;font-size:11px;color:#9ca3af">${a.venue || ''}</div>${a.channel ? `<div style="text-align:center;font-size:12px;color:#4ade80;margin-top:4px">📺 ${a.channel}</div>` : ''}</div>`;
           }
           const a = sc.attributes;
           const live = ['first_half', 'half_time', 'second_half', 'extra_time'].includes(st);
@@ -150,7 +151,7 @@ views:
               <div style="text-align:center;font-size:11px;letter-spacing:1px;color:#9ca3af;text-transform:uppercase">Prochain match • ${a.competition === 'top14' ? 'Top 14' : a.competition === 'champions_cup' ? 'Champions Cup' : 'Challenge Cup'}</div>
               <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">${team(...h)}<div style="font-size:22px;font-weight:800;color:#9ca3af">VS</div>${team(...w)}</div>
               <div style="text-align:center;margin-top:10px;font-size:13px;color:#4ade80;font-weight:600">${when}</div>
-              <div style="text-align:center;font-size:11px;color:#9ca3af">${a.venue || ''}</div></div>`;
+              <div style="text-align:center;font-size:11px;color:#9ca3af">${a.venue || ''}</div>${a.channel ? `<div style="text-align:center;font-size:12px;color:#4ade80;margin-top:4px">📺 ${a.channel}</div>` : ''}</div>`;
           }
           const a = sc.attributes;
           const live = ['first_half', 'half_time', 'second_half', 'extra_time'].includes(st);
@@ -226,7 +227,7 @@ views:
         <td width="16%"><small>{% if m.status == 'scheduled' %}{{ days[k.weekday()] }} {{ k.strftime('%H:%M') }}{% elif live %}<font color="#ef4444"><b>{{ m.minute or labels[m.status] }}</b></font>{% else %}{{ labels[m.status] }}{% endif %}</small></td>
         <td align="right" width="32%">{{ m.home_name }} {% if m.home_logo %}<img src="{{ m.home_logo }}" width="20" height="20">{% endif %}</td>
         <td align="center" width="18%"><b>{% if m.status == 'scheduled' %}-{% else %}{{ m.home_score }} - {{ m.away_score }}{% endif %}</b></td>
-        <td width="34%">{% if m.away_logo %}<img src="{{ m.away_logo }}" width="20" height="20">{% endif %} {{ m.away_name }}</td>
+        <td width="34%">{% if m.away_logo %}<img src="{{ m.away_logo }}" width="20" height="20">{% endif %} {{ m.away_name }}{% if m.channel %} <small>📺 {{ m.channel }}</small>{% endif %}</td>
         </tr>
         {% endfor %}
         </table>
@@ -330,3 +331,112 @@ views:
       name: Source ESPN
       grid_options:
         columns: 12
+- title: Direct
+  path: direct
+  icon: mdi:television-classic
+  type: panel
+  cards:
+  - type: custom:button-card
+    entity: event.match_suivi_evenement_du_match
+    show_name: false
+    show_icon: false
+    show_state: false
+    tap_action:
+      action: none
+    triggers_update:
+    - sensor.match_suivi_statut_du_match
+    - sensor.match_suivi_score
+    - sensor.match_suivi_minute
+    - sensor.match_suivi_dernier_evenement
+    - sensor.top_14_matchs_en_direct
+    - sensor.champions_cup_matchs_en_direct
+    - sensor.challenge_cup_matchs_en_direct
+    styles:
+      card:
+      - padding: '0'
+      - border-radius: '0'
+      - background: '#020617'
+      grid:
+      - grid-template-areas: '"direct"'
+      custom_fields:
+        direct:
+        - width: 100%
+    custom_fields:
+      direct: |-
+        [[[
+        const css = "<style>\n.rl-wrap{position:relative;height:calc(100vh - var(--header-height, 56px));min-height:420px;overflow:hidden;\n  background:radial-gradient(circle at 50% 30%,#1e293b,#020617);color:#fff;display:flex;flex-direction:column}\n.rl-tick{height:5vh;min-height:34px;background:#0b1220;border-bottom:3px solid #dc2626;overflow:hidden;\n  white-space:nowrap;display:flex;align-items:center;font-size:2.4vh}\n.rl-tick-in{display:inline-block;padding-left:100%;animation:rl-marq linear infinite}\n@keyframes rl-marq{from{transform:translateX(0)}to{transform:translateX(-100%)}}\n.rl-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.5vh}\n.rl-comp{font-size:2.4vh;letter-spacing:.4em;color:#94a3b8}\n.rl-row{display:flex;align-items:center;justify-content:center;gap:4vw;width:100%}\n.rl-team{display:flex;flex-direction:column;align-items:center;gap:1.5vh;width:28vw}\n.rl-logo{height:24vh;width:24vh;object-fit:contain;filter:drop-shadow(0 6px 18px rgba(0,0,0,.7))}\n.rl-init{height:24vh;width:24vh;border-radius:50%;display:flex;align-items:center;justify-content:center;\n  font-size:8vh;font-weight:900}\n.rl-name{font-size:4vh;font-weight:800;text-align:center;text-transform:uppercase}\n.rl-score{font-size:18vh;font-weight:900;font-variant-numeric:tabular-nums;line-height:1;white-space:nowrap}\n.rl-state{font-size:3.2vh;font-weight:700}\n.rl-live{background:#dc2626;border-radius:999px;padding:.4vh 1.6vh;margin-right:1.2vh;animation:rl-pulse 1.4s infinite}\n@keyframes rl-pulse{50%{opacity:.45}}\n.rl-last{font-size:3vh;color:#cbd5e1}\n.rl-chan{font-size:2.4vh;color:#4ade80;font-weight:700}\n.rl-ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;\n  overflow:hidden;background:radial-gradient(circle,var(--c) 0%,rgba(0,0,0,.94) 72%);\n  animation:rl-ov 8s ease forwards;z-index:5}\n@keyframes rl-ov{0%{opacity:0;transform:scale(1.3)}6%{opacity:1;transform:scale(1)}85%{opacity:1}\n  100%{opacity:0;visibility:hidden}}\n.rl-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}\n.rl-burst{position:absolute;width:160vmax;height:160vmax;\n  background:repeating-conic-gradient(rgba(255,255,255,.13) 0deg 8deg,transparent 8deg 22deg);animation:rl-spin 8s linear}\n@keyframes rl-spin{to{transform:rotate(200deg)}}\n.rl-ovlogo{position:relative;height:26vh;animation:rl-pop 1s ease both}\n@keyframes rl-pop{0%{transform:scale(0) rotate(-200deg)}70%{transform:scale(1.25)}100%{transform:scale(1)}}\n.rl-ovtxt{position:relative;font-size:17vh;font-weight:900;letter-spacing:.04em;text-align:center;\n  text-shadow:0 0 40px var(--c),0 8px 0 #000;animation:rl-shake .45s ease 4}\n@keyframes rl-shake{25%{transform:rotate(-3deg) scale(1.08)}75%{transform:rotate(3deg) scale(1.08)}}\n.rl-ovsub{position:relative;font-size:4.5vh;font-weight:800;margin-top:2vh;text-shadow:0 3px 0 #000}\n@media (prefers-reduced-motion:reduce){.rl-burst,.rl-ovtxt,.rl-ovlogo,.rl-tick-in,.rl-live{animation:none}}\n</style>";
+
+        const F = 'sensor.match_suivi';
+        const st = states[F + '_statut_du_match'];
+        const s = st ? st.state : 'no_match';
+        const sa = st ? st.attributes : {};
+        const a = (states[F + '_score'] || {attributes: {}}).attributes || {};
+        const mn = states[F + '_minute'];
+        const le = states[F + '_dernier_evenement'];
+        const COMP = {top14: 'TOP 14', champions_cup: 'CHAMPIONS CUP', challenge_cup: 'CHALLENGE CUP'};
+        const L = {scheduled: 'À venir', first_half: '1re mi-temps', half_time: 'Mi-temps', second_half: '2e mi-temps',
+          extra_time: 'Prolongations', finished: 'Terminé', postponed: 'Reporté', cancelled: 'Annulé', unknown: ''};
+        const LIVE = ['first_half', 'half_time', 'second_half', 'extra_time'];
+        const big = (url, name, color) => url ? `<img class="rl-logo" src="${url}">`
+          : `<div class="rl-init" style="background:${color || '#334155'}">${(name || '?').slice(0, 3).toUpperCase()}</div>`;
+        const hhmm = (d) => d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}).replace(':', 'h');
+
+        const tick = [];
+        for (const id of ['sensor.top_14_matchs_en_direct', 'sensor.champions_cup_matchs_en_direct', 'sensor.challenge_cup_matchs_en_direct']) {
+          const m = states[id];
+          for (const x of (m && m.attributes.matches) || []) {
+            if (x.status === 'scheduled') tick.push(`${x.home_name} – ${x.away_name} <b>${hhmm(new Date(x.kickoff))}</b>`);
+            else tick.push(`${x.home_name} <b>${x.home_score} - ${x.away_score}</b> ${x.away_name} <span style="color:#f87171">${LIVE.includes(x.status) ? (x.minute || '') : 'Fin'}</span>`);
+          }
+        }
+        const dur = Math.max(25, tick.length * 7);
+        const line = tick.join(' &nbsp;&nbsp;•&nbsp;&nbsp; ');
+        const ticker = tick.length ? `<div class="rl-tick"><div class="rl-tick-in" style="animation-duration:${dur}s;animation-delay:-${((Date.now() / 1000) % dur).toFixed(1)}s">${line} &nbsp;&nbsp;•&nbsp;&nbsp; ${line}</div></div>` : '';
+
+        let main;
+        if (s === 'no_match') {
+          main = '<div class="rl-state" style="color:#94a3b8">Aucun match pour le moment</div>';
+        } else {
+          const live = LIVE.includes(s);
+          const minute = mn && mn.attributes.display ? mn.attributes.display : '';
+          const state = live ? `<span class="rl-live">LIVE</span>${minute}` : (s === 'scheduled' ? `Coup d'envoi ${hhmm(new Date(sa.kickoff))}` : L[s] || s);
+          const score = s === 'scheduled' ? '<span style="color:#64748b">VS</span>' : `${a.home_score ?? 0}<span style="color:#475569"> - </span>${a.away_score ?? 0}`;
+          const last = le && le.state && le.state !== 'unknown' ? `<div class="rl-last">${le.state}</div>` : '';
+          main = `<div class="rl-comp">${COMP[sa.competition] || ''}</div>
+            <div class="rl-row">
+              <div class="rl-team">${big(a.home_logo, a.home_name, a.home_color)}<div class="rl-name">${a.home_name || ''}</div></div>
+              <div class="rl-score">${score}</div>
+              <div class="rl-team">${big(a.away_logo, a.away_name, a.away_color)}<div class="rl-name">${a.away_name || ''}</div></div>
+            </div>
+            <div class="rl-state">${state}</div>${last}
+            ${sa.channel ? `<div class="rl-chan">📺 ${sa.channel}</div>` : ''}`;
+        }
+
+        let overlay = '';
+        const ev = entity;
+        const ts = ev && ev.state ? Date.parse(ev.state) : NaN;
+        const age = Date.now() - ts;
+        if (!isNaN(ts) && age >= 0 && age < 8000) {
+          const t = ev.attributes.event_type;
+          const TXT = {try: 'ESSAI !', conversion: 'TRANSFORMATION', penalty_goal: 'PÉNALITÉ', drop_goal: 'DROP !',
+            yellow_card: 'CARTON JAUNE', red_card: 'CARTON ROUGE', kickoff: "COUP D'ENVOI", half_time: 'MI-TEMPS',
+            second_half: 'REPRISE', extra_time: 'PROLONGATIONS', full_time: 'FIN DU MATCH', revoked: 'ACTION ANNULÉE',
+            substitution: 'REMPLACEMENT'};
+          const tid = ev.attributes.team_id;
+          const home = tid && tid === a.home_id;
+          const tcolor = home ? a.home_color : (tid ? a.away_color : null);
+          const color = t === 'yellow_card' ? '#eab308' : t === 'red_card' ? '#dc2626' : (tcolor || '#334155');
+          const tlogo = home ? a.home_logo : (tid ? a.away_logo : null);
+          const special = tid === '25922' && ['try', 'conversion', 'penalty_goal', 'drop_goal'].includes(t);
+          const media = `/local/rugby_live/anim/${special ? t + '_toulouse' : t}.mp4#t=${(age / 1000).toFixed(1)}`;
+          const d = `animation-delay:-${age}ms`;
+          const who = [ev.attributes.player || ev.attributes.team_name, ev.attributes.minute ? ev.attributes.minute + "'" : ''].filter(Boolean).join(' • ');
+          overlay = `<div class="rl-ov" data-k="${ev.state}" style="--c:${color};${d}">
+            <video class="rl-vid" src="${media}" autoplay muted playsinline onerror="this.remove()"></video>
+            <div class="rl-burst" style="${d}"></div>
+            ${tlogo ? `<img class="rl-ovlogo" src="${tlogo}" style="${d}">` : ''}
+            <div class="rl-ovtxt" style="${d}">${TXT[t] || t}</div>
+            <div class="rl-ovsub">${who}</div></div>`;
+        }
+        return css + `<div class="rl-wrap">${ticker}<div class="rl-main">${main}</div>${overlay}</div>`;
+        ]]]

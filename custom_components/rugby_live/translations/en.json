@@ -36,7 +36,8 @@
           "poll_idle": "Polling without match",
           "postmatch_grace": "Follow-up after full time",
           "sinbin_minutes": "Yellow card length",
-          "show_substitutions": "Publish substitutions as events"
+          "show_substitutions": "Publish substitutions as events",
+          "broadcast_calendar": "TV broadcast calendar (event location = channel)"
         }
       }
     },

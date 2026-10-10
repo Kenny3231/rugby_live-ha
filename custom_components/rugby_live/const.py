@@ -15,6 +15,7 @@ CONF_POLL_IDLE = "poll_idle"
 CONF_POSTMATCH_GRACE = "postmatch_grace"
 CONF_SINBIN_MINUTES = "sinbin_minutes"
 CONF_SHOW_SUBSTITUTIONS = "show_substitutions"
+CONF_BROADCAST_CALENDAR = "broadcast_calendar"  # optional calendar whose location is the TV channel
 
 DEFAULT_OPTIONS = {
     CONF_POLL_LIVE: 10,
