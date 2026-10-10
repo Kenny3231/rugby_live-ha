@@ -35,8 +35,10 @@ class CalibrateButton(RugbyLiveEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         now = dt_util.utcnow()
-        favorites = set(self.coordinator.favorites) or None
-        ev = self.coordinator.last_released(favorites)
+        # Calibrate on the match being watched: the followed match (a favourite's in auto).
+        match = self.coordinator.followed_match()
+        teams = {match.home.id, match.away.id} if match else set(self.coordinator.favorites)
+        ev = self.coordinator.last_released(teams or None)
         limit = RECENT + timedelta(seconds=self.coordinator.delay)
         if ev is None or now - ev.observed_at > limit:
             raise HomeAssistantError(

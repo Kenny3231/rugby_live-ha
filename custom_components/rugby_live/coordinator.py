@@ -107,6 +107,7 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
             entry.options.get(CONF_FAVORITES, entry.data.get(CONF_FAVORITES, {}))
         )
         self.delay: float = 0.0
+        self.followed_id: str | None = None  # None: automatic
         self.matches: dict[str, Match] = {}  # current scoreboards (today / next match day)
         self.fixtures: dict[str, Match] = {}  # FIXTURE_DAYS ahead
         self.timelines: dict[str, MatchTimeline] = {}
@@ -349,6 +350,28 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         mine = [m for m in self.matches.values() if team_id in (m.home.id, m.away.id)]
         order = {"in": 0, "pre": 1, "post": 2}
         return min(mine, key=lambda m: (order.get(m.state, 3), m.kickoff), default=None)
+
+    def followed_match(self) -> Match | None:
+        """Match picked with the select entity. Automatic: a favourite's live or upcoming
+        match, else the first live match, else the next one, else the latest finished."""
+        if self.followed_id and self.followed_id in self.matches:
+            return self.matches[self.followed_id]
+        for team_id in self.favorites:
+            match = self.team_match(team_id)
+            if match is not None and match.state != "post":
+                return match
+        order = {"in": 0, "pre": 1, "post": 2}
+
+        def rank(m: Match) -> tuple[int, float]:
+            stamp = m.kickoff.timestamp()
+            return order.get(m.state, 3), -stamp if m.state == "post" else stamp
+
+        return min(self.matches.values(), key=rank, default=None)
+
+    @callback
+    def async_follow(self, match_id: str | None) -> None:
+        self.followed_id = match_id
+        self.async_update_listeners()
 
     def next_match(self, team_id: str | None = None, league: str | None = None) -> Match | None:
         now = dt_util.utcnow()

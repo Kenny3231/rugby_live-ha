@@ -4,6 +4,16 @@ Source : tests réels du 10/10/2026 depuis le navigateur du PC de David (`sports
 
 ## Vérifié
 
+### Ajouts du 10/10 au soir (rejeu de la capture brute, intégration en service)
+
+- **Une 2ᵉ mi-temps entière peut être ressaisie** (Perpignan–Vannes) : chaque action recréée jusqu'à 4 fois, minute de jeu décalée jusqu'à **6 min**, jusqu'à **~100 s** sans aucune version entre deux saisies. Ce qui reste stable : **type + équipe + joueur** (`participants[0].athlete`).
+- **Le score porté par un play n'est pas fiable** : une transformation enregistrée `2-0` juste après un essai `5-0`. Le score vient du scoreboard (`competitors[].score`).
+- **Plage de dates refusée** par le site API (`scoreboard?dates=YYYYMMDD-YYYYMMDD` → HTTP 400). Elle fonctionne sur le core API (`/events?dates=…-…`) mais ne renvoie que des `$ref`. L'intégration balaie donc 14 jours, jour par jour.
+- **Liste des équipes en retard d'une saison** (`/teams` du Top 14 : Oyonnax présent, Vannes absent) : compléter avec les équipes vues sur les scoreboards.
+- **Pas de logo ESPN** pour Bayonne, Perpignan et Vannes (404 ou drapeau « USA ») ; logos officiels LNR disponibles par `https://cdn.lnr.fr/club/{slug}/photo/logo.{version}`.
+- **Identifiants d'équipe** : Stade Toulousain `25922`, Bayonne `25912`.
+- Rejeu de la capture du 10/10 dans le moteur : **sur les 5 matchs, état final identique à ESPN** (mêmes actions, mêmes scores).
+
 ### Ligues
 
 | Compétition | ID ligue | Remarque |

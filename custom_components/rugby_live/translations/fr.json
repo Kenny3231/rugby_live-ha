@@ -140,6 +140,11 @@
       "calendar": {
         "name": "Matchs"
       }
+    },
+    "select": {
+      "followed_match": {
+        "name": "Match suivi"
+      }
     }
   },
   "exceptions": {

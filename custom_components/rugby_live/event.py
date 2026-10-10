@@ -30,6 +30,7 @@ EVENT_TYPES = [
 ]
 KEPT = (
     "competition",
+    "team_id",
     "match_id",
     "team_name",
     "player",
@@ -47,16 +48,17 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     coordinator = entry.runtime_data
+    teams: list[tuple[str | None, str]] = [*coordinator.favorites.items(), (None, "")]
     async_add_entities(
         MatchEventEntity(coordinator, team_id, name)
-        for team_id, name in coordinator.favorites.items()
+        for team_id, name in teams  # None: the "Match suivi" device
     )
 
 
 class MatchEventEntity(TeamEntity, EventEntity):
     _attr_event_types = EVENT_TYPES
 
-    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str, name: str) -> None:
+    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str | None, name: str) -> None:
         super().__init__(coordinator, team_id, name, "match_event")
 
     async def async_added_to_hass(self) -> None:
@@ -65,7 +67,11 @@ class MatchEventEntity(TeamEntity, EventEntity):
 
     @callback
     def _on_event(self, payload: dict[str, Any]) -> None:
-        if self.team_id not in (payload.get("home_id"), payload.get("away_id")):
+        if self.team_id is None:
+            match = self.current_match()
+            if match is None or payload.get("match_id") != match.id:
+                return
+        elif self.team_id not in (payload.get("home_id"), payload.get("away_id")):
             return
         if payload["type"] not in EVENT_TYPES:
             return

@@ -51,6 +51,11 @@ async def async_setup_entry(
                 TeamNextMatchSensor,
             )
         ]
+    # "Match suivi" device: same entities, following the match chosen in the select.
+    entities += [
+        cls(coordinator, None, "")
+        for cls in (TeamStatusSensor, TeamScoreSensor, TeamMinuteSensor, TeamLastEventSensor)
+    ]
     async_add_entities(entities)
 
 
@@ -134,7 +139,7 @@ class TeamStatusSensor(TeamEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.ENUM
     _attr_options = STATUS_OPTIONS
 
-    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str, name: str) -> None:
+    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str | None, name: str) -> None:
         super().__init__(coordinator, team_id, name, "match_status")
 
     @property
@@ -148,7 +153,7 @@ class TeamStatusSensor(TeamEntity, SensorEntity):
         if view is None:
             return {}
         match = view.match
-        home = match.home.id == self.team_id
+        home = self.is_home(match)
         team, opponent = (match.home, match.away) if home else (match.away, match.home)
         return {
             "match_id": match.id,
@@ -162,7 +167,7 @@ class TeamStatusSensor(TeamEntity, SensorEntity):
 
 
 class TeamScoreSensor(TeamEntity, SensorEntity):
-    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str, name: str) -> None:
+    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str | None, name: str) -> None:
         super().__init__(coordinator, team_id, name, "score")
 
     @property
@@ -178,7 +183,7 @@ class TeamScoreSensor(TeamEntity, SensorEntity):
         if view is None:
             return {}
         vis, match = view.visible, view.match
-        home = match.home.id == self.team_id
+        home = self.is_home(match)
         return {
             "home_score": vis.home_score,
             "away_score": vis.away_score,
@@ -191,7 +196,7 @@ class TeamScoreSensor(TeamEntity, SensorEntity):
 
 
 class TeamMinuteSensor(TeamEntity, SensorEntity):
-    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str, name: str) -> None:
+    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str | None, name: str) -> None:
         super().__init__(coordinator, team_id, name, "minute")
 
     @property
@@ -210,7 +215,7 @@ class TeamMinuteSensor(TeamEntity, SensorEntity):
 class TeamLastEventSensor(TeamEntity, SensorEntity):
     _unrecorded_attributes = frozenset({"events"})
 
-    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str, name: str) -> None:
+    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str | None, name: str) -> None:
         super().__init__(coordinator, team_id, name, "last_event")
 
     def _last(self) -> tuple[MatchView | None, TimelineEvent | None]:
@@ -244,7 +249,7 @@ class TeamLastEventSensor(TeamEntity, SensorEntity):
 class TeamNextMatchSensor(TeamEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.TIMESTAMP
 
-    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str, name: str) -> None:
+    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str | None, name: str) -> None:
         super().__init__(coordinator, team_id, name, "next_match")
 
     @property

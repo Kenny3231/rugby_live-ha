@@ -1,4 +1,4 @@
-# Rugby Live: example dashboard (Sections view). Needs custom:button-card for the hero card.
+# Rugby Live: example dashboard (Sections view). Needs custom:button-card for the hero cards.
 # Replace stade_toulousain with your favourite team entity prefix.
 title: Rugby
 views:
@@ -22,7 +22,7 @@ views:
       tap_action:
         action: none
       styles:
-        card:
+        card: &id001
         - padding: 12px
         - border-radius: 16px
         - background-color: '#1f2937'
@@ -100,6 +100,107 @@ views:
       - condition: state
         entity: sensor.stade_toulousain_statut_du_match
         state_not: no_match
+      grid_options:
+        columns: 12
+  - type: grid
+    column_span: 2
+    cards:
+    - type: heading
+      heading: Match suivi
+      icon: mdi:target-account
+    - type: tile
+      entity: select.rugby_live_match_suivi
+      name: Choisir le match
+      features:
+      - type: select-options
+      grid_options:
+        columns: 12
+    - type: custom:button-card
+      entity: sensor.match_suivi_statut_du_match
+      show_name: false
+      show_icon: false
+      show_state: false
+      tap_action:
+        action: none
+      styles:
+        card: *id001
+        grid:
+        - grid-template-areas: '"hero"'
+      custom_fields:
+        hero: |-
+          [[[
+          const st = entity.state;
+          const sc = states['sensor.match_suivi_score'] || {attributes: {}};
+          const mn = states['sensor.match_suivi_minute'];
+          const nx = states['sensor.match_suivi_prochain_match'];
+          const ev = states['sensor.match_suivi_dernier_evenement'];
+          const L = {scheduled:'À venir',first_half:'1re mi-temps',half_time:'Mi-temps',second_half:'2e mi-temps',extra_time:'Prolongations',finished:'Terminé',postponed:'Reporté',cancelled:'Annulé',unknown:'—'};
+          const logo = (url, name, color) => url
+            ? `<img src="${url}" style="height:64px;width:64px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))">`
+            : `<div style="height:64px;width:64px;border-radius:50%;background:${color || '#374151'};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;color:#fff">${(name || '?').slice(0, 3).toUpperCase()}</div>`;
+          const team = (url, name, color) => `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:34%">${logo(url, name, color)}<span style="font-size:13px;font-weight:600;text-align:center">${name || ''}</span></div>`;
+          if (st === 'no_match' || st === 'unavailable') {
+            if (!nx || !nx.state || nx.state === 'unknown' || nx.state === 'unavailable') return '<div style="padding:16px;color:#9ca3af">Aucun match prévu</div>';
+            const a = nx.attributes, d = new Date(nx.state);
+            const when = d.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'}) + ' • ' + d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}).replace(':', 'h');
+            const home = a.home_away === 'home';
+            const h = home ? [a.team_logo, a.team_name, a.team_color] : [a.opponent_logo, a.opponent_name, a.opponent_color];
+            const w = home ? [a.opponent_logo, a.opponent_name, a.opponent_color] : [a.team_logo, a.team_name, a.team_color];
+            return `<div style="padding:4px 8px 12px">
+              <div style="text-align:center;font-size:11px;letter-spacing:1px;color:#9ca3af;text-transform:uppercase">Prochain match • ${a.competition === 'top14' ? 'Top 14' : a.competition === 'champions_cup' ? 'Champions Cup' : 'Challenge Cup'}</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">${team(...h)}<div style="font-size:22px;font-weight:800;color:#9ca3af">VS</div>${team(...w)}</div>
+              <div style="text-align:center;margin-top:10px;font-size:13px;color:#4ade80;font-weight:600">${when}</div>
+              <div style="text-align:center;font-size:11px;color:#9ca3af">${a.venue || ''}</div></div>`;
+          }
+          const a = sc.attributes;
+          const live = ['first_half', 'half_time', 'second_half', 'extra_time'].includes(st);
+          const minute = mn && mn.attributes.display ? mn.attributes.display : '';
+          const badge = live
+            ? `<span style="background:#dc2626;color:#fff;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700">● LIVE</span> <span style="font-weight:700">${minute}</span>`
+            : `<span style="color:#9ca3af;font-size:12px;font-weight:600">${L[st] || st}</span>`;
+          const score = st === 'scheduled' ? '<span style="color:#9ca3af">VS</span>' : `${a.home_score ?? 0} <span style="color:#6b7280">-</span> ${a.away_score ?? 0}`;
+          const last = ev && ev.state && ev.state !== 'unknown' ? `<div style="text-align:center;margin-top:10px;font-size:12px;color:#d1d5db">${ev.state}</div>` : '';
+          return `<div style="padding:4px 8px 12px">
+            <div style="text-align:center">${badge}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+              ${team(a.home_logo, a.home_name, a.home_color)}
+              <div style="font-size:34px;font-weight:800;white-space:nowrap">${score}</div>
+              ${team(a.away_logo, a.away_name, a.away_color)}
+            </div>${last}</div>`;
+          ]]]
+      grid_options:
+        columns: 12
+    - type: tile
+      entity: binary_sensor.match_suivi_carton_jaune_en_cours
+      name: Carton jaune en cours
+      visibility:
+      - condition: state
+        entity: binary_sensor.match_suivi_carton_jaune_en_cours
+        state: 'on'
+      grid_options:
+        columns: 12
+    - type: markdown
+      title: Fil du match suivi
+      content: |-
+        {% set evs = state_attr('sensor.match_suivi_dernier_evenement', 'events') or [] %}
+        {% set icons = {'try': '🏉', 'conversion': '🎯', 'penalty_goal': '🎯', 'drop_goal': '🎯', 'yellow_card': '🟨', 'red_card': '🟥'} %}
+        {% set shown = evs | rejectattr('type', 'in', ['sub_on', 'sub_off']) | list %}
+        {% if shown %}
+        {% for e in shown | reverse %}
+        {{ icons.get(e.type, '•') }} **{{ e.minute }}'** {{ e.label }} — {{ e.player or e.team }} <small>({{ e.team }})</small>
+        {% endfor %}
+        {% else %}
+        _Aucun événement pour l'instant._
+        {% endif %}
+      visibility:
+      - condition: state
+        entity: sensor.match_suivi_statut_du_match
+        state_not: no_match
+      grid_options:
+        columns: 12
+    - type: tile
+      entity: event.match_suivi_evenement_du_match
+      name: Dernier signal (pour les animations)
       grid_options:
         columns: 12
   - type: grid

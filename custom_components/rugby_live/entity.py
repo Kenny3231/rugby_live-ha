@@ -46,6 +46,9 @@ def team_device(team_id: str, name: str) -> tuple[str, str]:
     return f"team_{team_id}", name
 
 
+FOLLOWED_DEVICE = ("followed", "Match suivi")
+
+
 class RugbyLiveEntity(CoordinatorEntity[RugbyLiveCoordinator]):
     """Entity attached to one of the integration devices."""
 
@@ -77,22 +80,36 @@ class RugbyLiveEntity(CoordinatorEntity[RugbyLiveCoordinator]):
 
 
 class TeamEntity(RugbyLiveEntity):
-    """Entity of a favourite team: follows the team's current match."""
+    """Follows a favourite team's current match, or (team_id None) the followed match
+    picked with the select entity: one set of stable entity ids for light animations."""
 
     def __init__(
-        self, coordinator: RugbyLiveCoordinator, team_id: str, name: str, key: str
+        self, coordinator: RugbyLiveCoordinator, team_id: str | None, name: str, key: str
     ) -> None:
-        super().__init__(coordinator, team_device(team_id, name), key)
+        device = team_device(team_id, name) if team_id else FOLLOWED_DEVICE
+        super().__init__(coordinator, device, key)
         self.team_id = team_id
+
+    def current_match(self) -> Match | None:
+        if self.team_id is None:
+            return self.coordinator.followed_match()
+        return self.coordinator.team_match(self.team_id)
 
     @property
     def view(self) -> MatchView | None:
-        match = self.coordinator.team_match(self.team_id)
+        match = self.current_match()
         return self.coordinator.view(match) if match else None
+
+    def is_home(self, match: Match) -> bool:
+        """Point of view: the favourite team, or the home side for the followed match."""
+        return self.team_id is None or match.home.id == self.team_id
 
     def side(self, team_id: str | None) -> str | None:
         if team_id is None:
             return None
+        if self.team_id is None:
+            match = self.current_match()
+            return match.side_of(team_id) if match else None
         return "team" if team_id == self.team_id else "opponent"
 
 

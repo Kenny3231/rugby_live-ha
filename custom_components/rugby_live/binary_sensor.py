@@ -18,9 +18,10 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     coordinator = entry.runtime_data
+    teams: list[tuple[str | None, str]] = [*coordinator.favorites.items(), (None, "")]
     async_add_entities(
         cls(coordinator, team_id, name)
-        for team_id, name in coordinator.favorites.items()
+        for team_id, name in teams  # None: the "Match suivi" device
         for cls in (PlayingSensor, SinBinSensor)
     )
 
@@ -28,7 +29,7 @@ async def async_setup_entry(
 class PlayingSensor(TeamEntity, BinarySensorEntity):
     _attr_device_class = BinarySensorDeviceClass.RUNNING
 
-    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str, name: str) -> None:
+    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str | None, name: str) -> None:
         super().__init__(coordinator, team_id, name, "playing")
 
     @property
@@ -40,12 +41,12 @@ class PlayingSensor(TeamEntity, BinarySensorEntity):
 class SinBinSensor(TeamEntity, BinarySensorEntity):
     """On while a player of the team serves a yellow card (sin bin)."""
 
-    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str, name: str) -> None:
+    def __init__(self, coordinator: RugbyLiveCoordinator, team_id: str | None, name: str) -> None:
         super().__init__(coordinator, team_id, name, "sin_bin")
 
     def _cards(self) -> dict[str, list[dict[str, Any]]]:
         view = self.view
-        out: dict[str, list[dict[str, Any]]] = {"team": [], "opponent": []}
+        out: dict[str, list[dict[str, Any]]] = {"team": [], "opponent": [], "home": [], "away": []}
         if view is None:
             return out
         sinbin = self.coordinator.options["sinbin_minutes"]
@@ -62,9 +63,14 @@ class SinBinSensor(TeamEntity, BinarySensorEntity):
 
     @property
     def is_on(self) -> bool:
-        return bool(self._cards()["team"])
+        cards = self._cards()
+        if self.team_id is None:  # followed match: any side
+            return bool(cards["home"] or cards["away"])
+        return bool(cards["team"])
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         cards = self._cards()
+        if self.team_id is None:
+            return {"home_players": cards["home"], "away_players": cards["away"]}
         return {"players": cards["team"], "opponent_players": cards["opponent"]}
