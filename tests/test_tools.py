@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -17,6 +18,7 @@ def test_recorder_writes_only_changed_bodies_and_replay_follows_time(tmp_path: P
     rec.save("scoreboard", "", b'{"v":1}')
     rec.save("scoreboard", "", b'{"v":1}')  # unchanged -> skipped
     rec.save("plays", "42", b'{"items":[]}')
+    time.sleep(0.01)  # distinct millisecond timestamps (fast Linux runners)
     rec.save("scoreboard", "", b'{"v":2}')
     rec.index.close()
 
