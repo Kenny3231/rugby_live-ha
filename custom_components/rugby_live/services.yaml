@@ -1,0 +1,16 @@
+set_delay:
+  fields:
+    seconds:
+      required: true
+      example: 30
+      selector:
+        number:
+          min: -300
+          max: 300
+          step: 1
+          unit_of_measurement: s
+          mode: box
+    relative:
+      default: false
+      selector:
+        boolean:

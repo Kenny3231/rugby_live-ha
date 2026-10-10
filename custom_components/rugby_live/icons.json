@@ -1,0 +1,63 @@
+{
+  "entity": {
+    "sensor": {
+      "api_status": {
+        "default": "mdi:api"
+      },
+      "live_matches": {
+        "default": "mdi:rugby"
+      },
+      "next_match": {
+        "default": "mdi:calendar-clock"
+      },
+      "match_status": {
+        "default": "mdi:whistle"
+      },
+      "score": {
+        "default": "mdi:scoreboard"
+      },
+      "minute": {
+        "default": "mdi:timer-outline"
+      },
+      "last_event": {
+        "default": "mdi:message-badge"
+      }
+    },
+    "binary_sensor": {
+      "playing": {
+        "default": "mdi:rugby"
+      },
+      "sin_bin": {
+        "default": "mdi:card",
+        "state": {
+          "on": "mdi:cards"
+        }
+      }
+    },
+    "event": {
+      "match_event": {
+        "default": "mdi:rugby"
+      }
+    },
+    "number": {
+      "delay": {
+        "default": "mdi:timer-sand"
+      }
+    },
+    "button": {
+      "calibrate": {
+        "default": "mdi:television-play"
+      }
+    },
+    "calendar": {
+      "calendar": {
+        "default": "mdi:calendar-month"
+      }
+    }
+  },
+  "services": {
+    "set_delay": {
+      "service": "mdi:timer-cog"
+    }
+  }
+}

@@ -11,3 +11,5 @@ extend-exclude = [".venv"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "N", "SIM", "RUF"]
+# RUF001: French typography (en dash); RUF012: Home Assistant _attr_* class attributes.
+ignore = ["RUF001", "RUF012"]

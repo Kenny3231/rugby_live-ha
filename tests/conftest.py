@@ -12,7 +12,7 @@ import sys
 import pytest
 
 if sys.platform == "win32":
-    collect_ignore = ["test_config_flow.py"]
+    collect_ignore = ["test_config_flow.py", "test_init.py"]
 else:
     pytest_plugins = "pytest_homeassistant_custom_component"
 

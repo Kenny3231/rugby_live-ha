@@ -7,6 +7,13 @@
         "data": {
           "competitions": "Compétitions"
         }
+      },
+      "favorites": {
+        "title": "Équipes favorites",
+        "description": "Facultatif : ces équipes ont leur propre appareil (score, minute, événements). Tous les matchs restent visibles sur les capteurs de compétition.",
+        "data": {
+          "favorites": "Équipes favorites"
+        }
       }
     },
     "error": {
@@ -16,12 +23,143 @@
       "single_instance_allowed": "Déjà configuré. Une seule configuration possible."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options de Rugby Live",
+        "data": {
+          "competitions": "Compétitions",
+          "favorites": "Équipes favorites",
+          "poll_live": "Interrogation pendant un match",
+          "poll_prematch": "Interrogation avant le coup d'envoi",
+          "prematch_window": "Fenêtre d'avant-match",
+          "poll_idle": "Interrogation sans match",
+          "postmatch_grace": "Suivi après le coup de sifflet final",
+          "sinbin_minutes": "Durée du carton jaune",
+          "show_substitutions": "Publier les remplacements comme événements"
+        }
+      }
+    },
+    "error": {
+      "no_competition": "Sélectionne au moins une compétition."
+    }
+  },
   "selector": {
     "competitions": {
       "options": {
         "top14": "Top 14",
         "champions_cup": "Champions Cup",
         "challenge_cup": "Challenge Cup"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "api_status": {
+        "name": "État de l'API",
+        "state": {
+          "ok": "OK",
+          "degraded": "Dégradé",
+          "error": "Erreur"
+        }
+      },
+      "live_matches": {
+        "name": "Matchs en direct"
+      },
+      "next_match": {
+        "name": "Prochain match"
+      },
+      "match_status": {
+        "name": "Statut du match",
+        "state": {
+          "no_match": "Pas de match",
+          "scheduled": "À venir",
+          "first_half": "1re mi-temps",
+          "half_time": "Mi-temps",
+          "second_half": "2e mi-temps",
+          "extra_time": "Prolongations",
+          "finished": "Terminé",
+          "postponed": "Reporté",
+          "cancelled": "Annulé",
+          "unknown": "Inconnu"
+        }
+      },
+      "score": {
+        "name": "Score"
+      },
+      "minute": {
+        "name": "Minute"
+      },
+      "last_event": {
+        "name": "Dernier événement"
+      }
+    },
+    "binary_sensor": {
+      "playing": {
+        "name": "En match"
+      },
+      "sin_bin": {
+        "name": "Carton jaune en cours"
+      }
+    },
+    "event": {
+      "match_event": {
+        "name": "Événement du match",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "kickoff": "Coup d'envoi",
+              "try": "Essai",
+              "conversion": "Transformation",
+              "penalty_goal": "Pénalité",
+              "drop_goal": "Drop",
+              "yellow_card": "Carton jaune",
+              "red_card": "Carton rouge",
+              "substitution": "Remplacement",
+              "half_time": "Mi-temps",
+              "second_half": "Reprise",
+              "extra_time": "Prolongations",
+              "full_time": "Fin du match",
+              "revoked": "Événement annulé"
+            }
+          }
+        }
+      }
+    },
+    "number": {
+      "delay": {
+        "name": "Retard"
+      }
+    },
+    "button": {
+      "calibrate": {
+        "name": "Calibrer le retard"
+      }
+    },
+    "calendar": {
+      "calendar": {
+        "name": "Matchs"
+      }
+    }
+  },
+  "exceptions": {
+    "calibrate_no_recent_event": {
+      "message": "Aucun événement récent pour calibrer : appuie sur le bouton au moment où le dernier événement affiché apparaît à la TV."
+    }
+  },
+  "services": {
+    "set_delay": {
+      "name": "Régler le retard",
+      "description": "Règle le retard appliqué aux données affichées.",
+      "fields": {
+        "seconds": {
+          "name": "Secondes",
+          "description": "Retard en secondes (ou variation si relatif)."
+        },
+        "relative": {
+          "name": "Relatif",
+          "description": "Ajoute la valeur au retard actuel."
+        }
       }
     }
   }

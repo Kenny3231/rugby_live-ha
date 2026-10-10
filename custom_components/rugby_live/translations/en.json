@@ -7,6 +7,13 @@
         "data": {
           "competitions": "Competitions"
         }
+      },
+      "favorites": {
+        "title": "Favourite teams",
+        "description": "Optional: teams that get their own device (score, minute, events). All matches stay visible on the competition sensors.",
+        "data": {
+          "favorites": "Favourite teams"
+        }
       }
     },
     "error": {
@@ -16,12 +23,143 @@
       "single_instance_allowed": "Already configured. Only a single configuration possible."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Rugby Live options",
+        "data": {
+          "competitions": "Competitions",
+          "favorites": "Favourite teams",
+          "poll_live": "Polling during a match",
+          "poll_prematch": "Polling before kickoff",
+          "prematch_window": "Pre-match window",
+          "poll_idle": "Polling without match",
+          "postmatch_grace": "Follow-up after full time",
+          "sinbin_minutes": "Yellow card length",
+          "show_substitutions": "Publish substitutions as events"
+        }
+      }
+    },
+    "error": {
+      "no_competition": "Select at least one competition."
+    }
+  },
   "selector": {
     "competitions": {
       "options": {
         "top14": "Top 14",
         "champions_cup": "Champions Cup",
         "challenge_cup": "Challenge Cup"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "api_status": {
+        "name": "API status",
+        "state": {
+          "ok": "OK",
+          "degraded": "Degraded",
+          "error": "Error"
+        }
+      },
+      "live_matches": {
+        "name": "Live matches"
+      },
+      "next_match": {
+        "name": "Next match"
+      },
+      "match_status": {
+        "name": "Match status",
+        "state": {
+          "no_match": "No match",
+          "scheduled": "Scheduled",
+          "first_half": "First half",
+          "half_time": "Half time",
+          "second_half": "Second half",
+          "extra_time": "Extra time",
+          "finished": "Full time",
+          "postponed": "Postponed",
+          "cancelled": "Cancelled",
+          "unknown": "Unknown"
+        }
+      },
+      "score": {
+        "name": "Score"
+      },
+      "minute": {
+        "name": "Minute"
+      },
+      "last_event": {
+        "name": "Last event"
+      }
+    },
+    "binary_sensor": {
+      "playing": {
+        "name": "Playing"
+      },
+      "sin_bin": {
+        "name": "Sin bin"
+      }
+    },
+    "event": {
+      "match_event": {
+        "name": "Match event",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "kickoff": "Kickoff",
+              "try": "Try",
+              "conversion": "Conversion",
+              "penalty_goal": "Penalty goal",
+              "drop_goal": "Drop goal",
+              "yellow_card": "Yellow card",
+              "red_card": "Red card",
+              "substitution": "Substitution",
+              "half_time": "Half time",
+              "second_half": "Second half",
+              "extra_time": "Extra time",
+              "full_time": "Full time",
+              "revoked": "Cancelled event"
+            }
+          }
+        }
+      }
+    },
+    "number": {
+      "delay": {
+        "name": "Delay"
+      }
+    },
+    "button": {
+      "calibrate": {
+        "name": "Calibrate delay"
+      }
+    },
+    "calendar": {
+      "calendar": {
+        "name": "Matches"
+      }
+    }
+  },
+  "exceptions": {
+    "calibrate_no_recent_event": {
+      "message": "No recent event to calibrate on: press the button right when the last event shown appears on your TV."
+    }
+  },
+  "services": {
+    "set_delay": {
+      "name": "Set delay",
+      "description": "Set the delay applied to the data shown.",
+      "fields": {
+        "seconds": {
+          "name": "Seconds",
+          "description": "Delay in seconds (or change when relative)."
+        },
+        "relative": {
+          "name": "Relative",
+          "description": "Add the value to the current delay."
+        }
       }
     }
   }
