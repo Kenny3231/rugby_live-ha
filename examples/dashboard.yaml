@@ -423,7 +423,11 @@ views:
         } else {
           const live = LIVE.includes(s);
           const minute = mn && mn.attributes.display ? mn.attributes.display : '';
-          const state = live ? `<span class="rl-live">LIVE</span>${minute}` : (s === 'scheduled' ? `Coup d'envoi ${hhmm(new Date(sa.kickoff))}` : L[s] || s);
+          const ko = new Date(sa.kickoff);
+          const today = ko.toDateString() === new Date().toDateString();
+          const koText = today ? `Coup d'envoi ${hhmm(ko)}`
+            : ko.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'}) + ' • ' + hhmm(ko);
+          const state = live ? `<span class="rl-live">LIVE</span>${minute}` : (s === 'scheduled' ? `<span style="color:#4ade80">${koText}</span>` : L[s] || s);
           const prov = a.provisional ? ' rl-prov' : '';
           const score = s === 'scheduled' ? '<span style="color:#64748b">VS</span>' : `<span class="${prov}">${a.home_score ?? 0}</span><span style="color:#475569"> - </span><span class="${prov}">${a.away_score ?? 0}</span>`;
           const nowMin = mn && !isNaN(parseInt(mn.state)) ? parseInt(mn.state) : null;
@@ -477,9 +481,5 @@ views:
             <div class="rl-ovtxt" style="${d}">${TXT[t] || t}</div>
             <div class="rl-ovsub">${who}</div></div>`;
         }
-        const bar = fn && s !== 'no_match' && s !== 'finished' && fn.match_id !== sa.match_id
-          ? `<div class="rl-bar"><small>PROCHAIN MATCH DU STADE TOULOUSAIN</small>${small(fh[0])}<b>${fh[1] || ''} – ${fa[1] || ''}</b>${small(fa[0])}
-             <span>${COMP[fn.competition] || ''} • ${fwhen}${fn.channel ? ' • 📺 ' + fn.channel : ''}</span></div>`
-          : '';
-        return css + `<div class="rl-wrap">${wm}${ticker}<div class="rl-main">${main}</div>${bar}${overlay}</div>`;
+        return css + `<div class="rl-wrap">${wm}${ticker}<div class="rl-main">${main}</div>${overlay}</div>`;
         ]]]

@@ -451,14 +451,21 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         return next((r for r in rounds if any(m.id == match.id for m in r)), [match])
 
     def followed_match(self) -> Match | None:
-        """Match picked with the select entity. Automatic: a favourite's live or upcoming
-        match, else the first live match, else the next one, else the latest finished."""
+        """Match picked with the select entity. Automatic (David, 10/10): the favourite
+        team's match of the day (kept 3 h after full time for the final score), else its
+        next match even days ahead; without favourite, the first live / next match."""
         if self.followed_id and self.followed_id in self.matches:
             return self.matches[self.followed_id]
+        now = dt_util.utcnow()
         for team_id in self.favorites:
             match = self.team_match(team_id)
-            if match is not None and match.state != "post":
+            if match is not None and (
+                match.state != "post" or now - match.kickoff < timedelta(hours=5)
+            ):
                 return match
+            upcoming = self.next_match(team_id=team_id)
+            if upcoming is not None:
+                return upcoming
         order = {"in": 0, "pre": 1, "post": 2}
 
         def rank(m: Match) -> tuple[int, float]:
