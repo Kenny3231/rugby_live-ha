@@ -33,7 +33,7 @@ from .const import (
 )
 
 NUMBER_OPTIONS = {
-    CONF_POLL_LIVE: (10, 120, "s"),
+    CONF_POLL_LIVE: (5, 120, "s"),
     CONF_POLL_PREMATCH: (30, 600, "s"),
     CONF_PREMATCH_WINDOW: (5, 180, "min"),
     CONF_POLL_IDLE: (300, 3600, "s"),

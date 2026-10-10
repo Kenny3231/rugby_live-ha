@@ -259,24 +259,31 @@ class MatchTimeline:
 
         period = {MatchStatus.FIRST_HALF: 1, MatchStatus.SECOND_HALF: 2}.get(status, 3)
         cap = PERIOD_CAP.get(period, 100 * 60)
-        estimates: list[tuple[float, str]] = []
+        # Anchor on the official clock of the last play (+ time since we saw it). The
+        # scheduled kickoff runs ahead: Clermont-UBB 10/10 kicked off 2 min 23 late and the
+        # clock stops for TMO / injuries. Fallback: when ESPN switched the period on.
         last = max(
             (ev for ev in events if ev.period == period), key=lambda e: e.clock, default=None
         )
-        if last is not None:
-            elapsed = 0.0 if last.catch_up else (cutoff - last.observed_at).total_seconds()
-            estimates.append((last.clock + max(elapsed, 0.0), "play_clock"))
-        start = next(
-            (c.observed_at for c in statuses if c.value == status and not c.catch_up), None
-        )
-        if period == 1:
-            start = min(start, kickoff) if start else kickoff
-        if start is not None:
-            base = {1: 0, 2: 40 * 60}.get(period, 80 * 60)
-            estimates.append((base + (cutoff - start).total_seconds(), "kickoff_estimate"))
-        if not estimates:
-            return None, None, False
-        seconds, source = max(estimates)
+        if last is not None and not last.catch_up:
+            elapsed = max((cutoff - last.observed_at).total_seconds(), 0.0)
+            seconds, source = last.clock + elapsed, "play_clock"
+        else:
+            start = next(
+                (c.observed_at for c in statuses if c.value == status and not c.catch_up), None
+            )
+            if start is None and period == 1:
+                start = kickoff
+            if start is not None:
+                base = {1: 0, 2: 40 * 60}.get(period, 80 * 60)
+                seconds = base + (cutoff - start).total_seconds()
+                seconds = max(seconds, last.clock if last else 0.0)
+                source = "kickoff_estimate"
+            elif last is not None:
+                seconds = last.clock + max((cutoff - last.observed_at).total_seconds(), 0.0)
+                source = "play_clock"
+            else:
+                return None, None, False
         return int(min(seconds, cap - 1) // 60) + 1, source, seconds >= cap
 
     # ------------------------------------------------------------- persistence

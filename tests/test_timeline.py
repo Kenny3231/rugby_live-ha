@@ -151,3 +151,15 @@ def test_round_trip_persistence() -> None:
     assert clone.visible(at(9), 0, KICKOFF) == tl.visible(at(9), 0, KICKOFF)
     clone.ingest_plays([play("2", PlayType.CONVERSION, HOME, 640, 7, 0)], at(9))
     assert next(reversed(clone.events)) == "604400-2"
+
+
+def test_minute_follows_play_clock_not_scheduled_kickoff() -> None:
+    """Clermont-UBB 10/10: scheduled 19:00, real kickoff 19:02:23. A penalty at clock 120 s
+    seen 15 s later must give minute 4 a minute later, not the scheduled-time minute 6."""
+    scheduled = datetime(2026, 10, 10, 19, 0, tzinfo=UTC)
+    seen = datetime(2026, 10, 10, 19, 4, 38, tzinfo=UTC)
+    tl = MatchTimeline("604397", "25917", "143737")
+    tl.ingest_status(MatchStatus.FIRST_HALF, datetime(2026, 10, 10, 19, 1, 39, tzinfo=UTC))
+    tl.ingest_plays([play("1", PlayType.PENALTY_GOAL, "143737", 120, 0, 3)], seen)
+    vis = tl.visible(seen + timedelta(seconds=60), 0, scheduled)
+    assert (vis.minute, vis.minute_source) == (4, "play_clock")
