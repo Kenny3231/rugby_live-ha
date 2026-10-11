@@ -856,6 +856,9 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 			pa: !1,
 			bh: 0,
 			ba: 0
+		}, this._born = Date.now(), this._seen = {
+			key: "",
+			t0: 0
 		};
 	}
 	setConfig(e) {
@@ -1052,8 +1055,17 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 		};
 	}
 	_overlay(e, t, n) {
-		let r = e ? e.state : "idle", i = e?.attributes ?? {}, a = (i.duration || 20) * 1e3, o = i.started_at ? Date.now() - Date.parse(i.started_at) : NaN;
-		if (r === "idle" || isNaN(o) || o < 0 || o >= a) return R;
+		let r = e ? e.state : "idle", i = e?.attributes ?? {}, a = (i.duration || 20) * 1e3;
+		if (r === "idle" || !i.started_at) return R;
+		if (this._seen.key !== i.started_at) {
+			let e = Math.max(0, Date.now() - Date.parse(i.started_at)), t = Date.now() - this._born > 5e3;
+			this._seen = {
+				key: i.started_at,
+				t0: Date.now() - (t ? 0 : e)
+			};
+		}
+		let o = Date.now() - this._seen.t0;
+		if (isNaN(o) || o >= a) return R;
 		let s = i.team_id, c = !!s && s === t.home_id, l = r === "yellow_card" || r === "red_card", u = Ve.includes(r), d = !l && !u, f = c ? t.home_color : s ? t.away_color : null, p = c ? t.home_logo : s ? t.away_logo : null, m = r === "yellow_card" ? "#eab308" : r === "red_card" ? "#dc2626" : !d && f || "#334155", h = r === "yellow_card" ? "#111" : "#fff", g = `/local/rugby_live/anim/${n && s === n && u ? r + "_toulouse" : r}.mp4#t=${(o / 1e3 % 6).toFixed(1)}`, _ = ze[r] || r, v = i.minute ? `${i.minute}'` : "", y = o / 1e3, b = i.background ?? [], x = [
 			0,
 			.8,

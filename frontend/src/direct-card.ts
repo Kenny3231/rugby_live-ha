@@ -49,6 +49,9 @@ export class RugbyLiveDirectCard extends LitElement {
   private _config: DirectConfig = { type: 'custom:rugby-live-direct-card' };
   // Score bump: remembered between renders, deferred while an animation covers the board.
   private _score = { key: '', h: 0, a: 0, ph: false, pa: false, bh: 0, ba: 0 };
+  // Animation timing on this screen's clock (see _overlay).
+  private _born = Date.now();
+  private _seen = { key: '', t0: 0 };
 
   setConfig(config: DirectConfig) {
     if (!config) throw new Error('Configuration invalide');
@@ -275,8 +278,17 @@ export class RugbyLiveDirectCard extends LitElement {
     const t = an ? an.state : 'idle';
     const aa: Attrs = an?.attributes ?? {};
     const durMs = (aa.duration || 20) * 1000;
-    const age = aa.started_at ? Date.now() - Date.parse(aa.started_at) : NaN;
-    if (t === 'idle' || isNaN(age) || age < 0 || age >= durMs) return nothing;
+    if (t === 'idle' || !aa.started_at) return nothing;
+    // Age from this screen's own clock: a TV box or tablet clock a second behind HA's gave
+    // a negative age, and the animation never showed. A new animation starts when the card
+    // receives it; only right after the page load does HA's clock tell how far in it is.
+    if (this._seen.key !== aa.started_at) {
+      const serverAge = Math.max(0, Date.now() - Date.parse(aa.started_at));
+      const live = Date.now() - this._born > 5000;
+      this._seen = { key: aa.started_at, t0: Date.now() - (live ? 0 : serverAge) };
+    }
+    const age = Date.now() - this._seen.t0;
+    if (isNaN(age) || age >= durMs) return nothing;
     const tid: string | undefined = aa.team_id;
     const home = !!tid && tid === a.home_id;
     const card = t === 'yellow_card' || t === 'red_card';
