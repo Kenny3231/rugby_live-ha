@@ -30,12 +30,15 @@ async def test_setup_creates_stable_entities(hass: HomeAssistant) -> None:
         data={CONF_COMPETITIONS: ["top14"], CONF_FAVORITES: {"25921": "Stade Francais Paris"}},
     )
     entry.add_to_hass(hass)
-    with patch("custom_components.rugby_live.EspnClient") as client_cls:
+    with (
+        patch("custom_components.rugby_live.EspnClient") as client_cls,
+        patch("custom_components.rugby_live.coordinator.lnr_players", AsyncMock(return_value=[])),
+    ):
         client = client_cls.return_value
         client.scoreboard = AsyncMock(return_value=matches)
         client.plays = AsyncMock(return_value=plays)
         assert await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
+        await hass.async_block_till_done(wait_background_tasks=True)
 
     # The live match seen at startup is a catch-up: visible at once, no event emitted.
     live = hass.states.get("sensor.top_14_live_matches")
