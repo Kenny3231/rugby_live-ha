@@ -4,6 +4,11 @@ Source : tests réels du 10/10/2026 depuis le navigateur du PC de David (`sports
 
 ## Vérifié
 
+### Ajouts du 11/10
+
+- **Le scoreboard sans date peut avoir une journée de retard** : le 11/10 à 12 h (heure de Paris), `.../270559/scoreboard` renvoyait encore les 6 matchs du 10/10, alors que `?dates=20261011` renvoyait bien Toulouse–Bayonne (19:05Z). L'intégration interroge donc aussi, par date, le jour d'un match du calendrier attendu maintenant (fenêtre d'avant-match jusqu'à 4 h après le coup d'envoi) quand le scoreboard sans date ne le contient pas. L'heure de bascule d'ESPN n'est pas connue.
+- **Photos des joueurs** : ESPN n'en fournit pas (fiche `athletes/{id}` sans image). Le site de la LNR les expose par un index de recherche public (voir `api.py`, `lnr_players`).
+
 ### Ajouts du 10/10 au soir (rejeu de la capture brute, intégration en service)
 
 - **Une 2ᵉ mi-temps entière peut être ressaisie** (Perpignan–Vannes) : chaque action recréée jusqu'à 4 fois, minute de jeu décalée jusqu'à **6 min**, jusqu'à **~100 s** sans aucune version entre deux saisies. Ce qui reste stable : **type + équipe + joueur** (`participants[0].athlete`).
