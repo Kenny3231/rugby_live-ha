@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import hashlib
 import os
+from pathlib import Path
 
 import voluptuous as vol
+from homeassistant.components.frontend import add_extra_js_url
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -26,6 +30,8 @@ PLATFORMS = [
     Platform.SENSOR,
 ]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+CARDS_URL = f"/{DOMAIN}/rugby-live-cards.js"
+CARDS_FILE = Path(__file__).parent / "frontend" / "rugby-live-cards.js"  # built from frontend/
 SET_DELAY_SCHEMA = vol.Schema(
     {
         vol.Required("seconds"): vol.Coerce(float),
@@ -48,7 +54,22 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             coordinator.async_set_delay(seconds)
 
     hass.services.async_register(DOMAIN, "set_delay", set_delay, schema=SET_DELAY_SCHEMA)
+    await _async_register_cards(hass)
     return True
+
+
+async def _async_register_cards(hass: HomeAssistant) -> None:
+    """Serve the Lovelace cards and load them in every dashboard (no resource to add).
+    Skipped without the frontend (tests); the URL changes with the file to bust caches."""
+    if hass.http is None or "frontend" not in hass.config.components:
+        return
+    digest = await hass.async_add_executor_job(
+        lambda: hashlib.sha256(CARDS_FILE.read_bytes()).hexdigest()[:8]
+    )
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(CARDS_URL, str(CARDS_FILE), cache_headers=True)]
+    )
+    add_extra_js_url(hass, f"{CARDS_URL}?v={digest}")
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: RugbyLiveConfigEntry) -> bool:

@@ -1,0 +1,19 @@
+# Rugby Live: "Direct" view built with the integration's own card (no button-card, no
+# template). The card is loaded automatically by the integration; every option can be set
+# in the visual editor. Empty device / favorite = chosen automatically.
+title: Rugby (cartes)
+views:
+- title: Direct
+  path: direct
+  icon: mdi:television-classic
+  type: panel
+  cards:
+  - type: custom:rugby-live-direct-card
+    # device: <Match suivi device>      # followed match
+    # favorite: <favourite team device> # next match, special videos
+    ticker: true
+    watermark: true
+    breakdown: true
+    bonus: true
+    animations: true
+    force_motion: false
