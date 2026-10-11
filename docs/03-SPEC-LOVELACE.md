@@ -20,6 +20,8 @@
 - Options (éditeur visuel `getConfigForm`) : `ticker`, `watermark`, `breakdown`, `bonus`, `animations`, `force_motion`.
 - Textes en français seulement pour l'instant.
 
+**État au 11/10** : cartes 0, 1, 1 bis, 2 et 3 faites (`frontend/src/`), servies par l'intégration. Écarts à la spec : animation du score déclenchée par le capteur « dernier événement » (pas par le bus, réservé aux admins côté frontend) ; pas de score après chaque action dans la frise (non exposé) ; données du calendrier = attribut `fixtures` des capteurs « prochain match » de compétition ; option `device` acceptant aussi `followed` / `favorite`. Restent : i18n anglaise, tests Vitest / captures Playwright, cartes 4 et 5 (sous condition).
+
 ### 1. `rugby-live-scoreboard-card`
 
 - Deux équipes avec logo (URL ESPN `.../teamlogos/rugby/teams/500/{teamId}.png`, repli sur initiales colorées si 404 ou logo « pays » erroné), score en grand, statut (badge **LIVE** animé, MT, Terminé, coup d'envoi dans …), minute.
