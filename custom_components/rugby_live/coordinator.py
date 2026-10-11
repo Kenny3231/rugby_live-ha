@@ -16,18 +16,22 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_call_later, async_track_point_in_utc_time
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
-from .api import EspnClient, EspnError, names_match
+from .api import EspnClient, EspnError, lnr_players, names_match, player_photo
 from .const import (
     ANIMATED_EVENTS,
     ANIMATION_QUEUE_MAX,
+    BACKGROUND_OPTION,
+    CARD_EVENTS,
     COMPETITIONS,
     CONF_ANIMATION_SECONDS,
+    CONF_BG_INFO,
     CONF_BROADCAST_CALENDAR,
     CONF_COMPETITIONS,
     CONF_FAVORITES,
@@ -46,11 +50,12 @@ from .const import (
     FIXTURE_DAYS,
     FIXTURE_REFRESH,
     MAX_DELAY,
+    PLAYERS_REFRESH,
     SIGNAL_EVENT,
     STORE_KEY,
     STORE_VERSION,
 )
-from .models import LIVE_STATUSES, Match, MatchStatus, Play, PlayType
+from .models import LIVE_STATUSES, LnrPlayer, Match, MatchStatus, Play, PlayType
 from .timeline import Change, MatchTimeline, TimelineEvent, Visible
 
 _LOGGER = logging.getLogger(__name__)
@@ -119,6 +124,8 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         self.matches: dict[str, Match] = {}  # current scoreboards (today / next match day)
         self.fixtures: dict[str, Match] = {}  # FIXTURE_DAYS ahead
         self.channels: dict[str, str] = {}  # match id -> TV channel (broadcast calendar)
+        self.players: list[LnrPlayer] = []  # LNR photos, refreshed daily
+        self._players_at: datetime | None = None
         self.timelines: dict[str, MatchTimeline] = {}
         self._seen_this_run: set[str] = set()
         self._finished_at: dict[str, datetime] = {}
@@ -160,6 +167,11 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
             self._fixtures_at = now
             self.config_entry.async_create_background_task(
                 self.hass, self._async_scan_fixtures(), f"{DOMAIN}_fixtures"
+            )
+        if self._players_at is None or now - self._players_at >= PLAYERS_REFRESH:
+            self._players_at = now
+            self.config_entry.async_create_background_task(
+                self.hass, self._async_load_players(), f"{DOMAIN}_players"
             )
         try:
             fresh: dict[str, Match] = {}
@@ -237,6 +249,13 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         self.fixtures = found
         await self._async_load_channels()
         self.async_update_listeners()
+
+    async def _async_load_players(self) -> None:
+        players = await lnr_players(async_get_clientsession(self.hass))
+        if players:
+            self.players = players
+        else:  # keep the previous list, retry in an hour
+            self._players_at = dt_util.utcnow() - PLAYERS_REFRESH + timedelta(hours=1)
 
     async def _async_load_channels(self) -> None:
         """TV channels from the optional broadcast calendar: the event location of the
@@ -342,8 +361,10 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         else:
             now = dt_util.utcnow()
             seconds = self.options[CONF_ANIMATION_SECONDS]
+            payload = self._anim_queue.pop(0)
             self.animation = {
-                **self._anim_queue.pop(0),
+                **payload,
+                "background": self._background(payload["type"]),
                 "started_at": now.isoformat(),
                 "ends_at": (now + timedelta(seconds=seconds)).isoformat(),
                 "duration": seconds,
@@ -351,6 +372,12 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
             }
             self._anim_unsub = async_call_later(self.hass, seconds, self._next_animation)
         self.async_update_listeners()
+
+    def _background(self, event_type: str) -> list[str]:
+        """Background layers picked in the options; cards have their own scene."""
+        if event_type in CARD_EVENTS:
+            return []
+        return list(self.options[BACKGROUND_OPTION.get(event_type, CONF_BG_INFO)])
 
     @callback
     def async_set_delay(self, seconds: float) -> None:
@@ -394,6 +421,7 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
 
     def _payload(self, match: Match, ev: TimelineEvent, now: datetime) -> dict[str, Any]:
         names = {match.home.id: match.home.name, match.away.id: match.away.name}
+        player = match.athletes.get(ev.athlete_id or "")
         return {
             **self._base_payload(match, now, ev.observed_at),
             "event_key": ev.key,
@@ -401,7 +429,8 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
             "team_id": ev.team_id,
             "team_name": names.get(ev.team_id or ""),
             "side": match.side_of(ev.team_id),
-            "player": match.athletes.get(ev.athlete_id or ""),
+            "player": player,
+            "player_photo": player_photo(self.players, ev.team_id, player),
             "minute": ev.minute,
             "period": ev.period,
         }

@@ -1,0 +1,14 @@
+{
+  "_comment": "Shape of a search.lnr.fr Meilisearch response (rugbymen_top14), 2026-10-11, truncated; photo URLs shortened.",
+  "hits": [
+    { "first_name": "Louis", "last_name": "CARBONEL", "club": { "url": "/club/paris" }, "image": { "original": "https://cdn.lnr.fr/joueur/carbonel/photoFull", "m-2x": "https://cdn.lnr.fr/joueur/carbonel/photoFull-m-2x" } },
+    { "first_name": "Yoan", "last_name": "TANGA MANGENE", "club": { "url": "/club/paris" }, "image": { "m-2x": "https://cdn.lnr.fr/joueur/tanga/photoFull-m-2x" } },
+    { "first_name": "Alivereti Uqueqe", "last_name": "DUGUIVALU", "club": { "url": "/club/paris" }, "image": { "m-2x": "https://cdn.lnr.fr/joueur/duguivalu/photoFull-m-2x" } },
+    { "first_name": "Paul", "last_name": "ALO-EMILE", "club": { "url": "/club/paris" }, "image": { "m-2x": "https://cdn.lnr.fr/joueur/alo-emile/photoFull-m-2x" } },
+    { "first_name": "Hugo Domingo", "last_name": "MIOTTI", "club": { "url": "/club/montpellier" }, "image": { "m-2x": "https://cdn.lnr.fr/joueur/miotti/photoFull-m-2x" } },
+    { "first_name": "Stuart", "last_name": "HOGG", "club": { "url": "/club/montpellier" }, "image": { "m-2x": "https://cdn.lnr.fr/joueur/hogg/photoFull-m-2x" } },
+    { "first_name": "Thomas", "last_name": "RAMOS", "club": { "url": "/club/toulouse" }, "image": { "m-2x": "https://cdn.lnr.fr/joueur/ramos/photoFull-m-2x" } },
+    { "first_name": "Theo", "last_name": "RAMOS", "club": { "url": "/club/toulon" }, "image": { "m-2x": "https://cdn.lnr.fr/joueur/theo-ramos/photoFull-m-2x" } },
+    { "first_name": "Sans", "last_name": "PHOTO", "club": { "url": "/club/toulouse" }, "image": null }
+  ]
+}

@@ -34,6 +34,7 @@ KEPT = (
     "match_id",
     "team_name",
     "player",
+    "player_photo",
     "minute",
     "score_home",
     "score_away",

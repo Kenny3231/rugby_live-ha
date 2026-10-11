@@ -6,11 +6,27 @@ Objectif (David, 10/10/2026) : une ambiance « studio » façon ConnectedRoom Sp
 
 | Couche | Déclencheur | État |
 |---|---|---|
-| **Écran** (vue « Direct » du dashboard) | `event.match_suivi_evenement_du_match` | ✅ Animation CSS intégrée : fond aux couleurs de l'équipe, rayons, logo, texte « ESSAI ! », joueur, minute. Une **vidéo de fond** est jouée si le fichier existe. |
+| **Écran** (vue « Direct » du dashboard) | `sensor.match_suivi_animation` | ✅ Animation CSS intégrée (voir ci-dessous). Une **vidéo de fond** est jouée si le fichier existe. |
 | **Panneau LED** (WLED, 32×8) | même entité, par automatisation | ⏳ 2ᵉ temps |
 | **Lumières** | même entité ou événement `rugby_live_event` | ⏳ 2ᵉ temps |
 
 Tout passe après le **retard réglé** : avec myCanal, l'animation tombe au moment où l'action passe à la TV, une fois le retard calibré.
+
+## Animation à l'écran (vue « Direct »)
+
+| Action | Ce qui s'affiche |
+|---|---|
+| Essai, transformation, pénalité, drop | **Photo détourée du joueur** (site LNR) qui entre par la gauche, logo du club, titre, nom du joueur dans un bandeau aux couleurs du club, club et minute. Sans photo (joueur hors Top 14) : logo, titre, joueur et minute au centre. |
+| Carton jaune ou rouge | Coup de **sifflet** (ondes sonores), puis le **carton** tombe en tournoyant sur l'épaule du joueur (ou au centre sans photo), pourtour jaune ou rouge qui pulse lentement. |
+| Coup d'envoi, mi-temps, reprise, prolongations, fin, action annulée | Information seule : titre et ligne de détail (pour une action annulée : « Essai • joueur • minute »), fond neutre. |
+
+**Fond au choix** dans les options de l'intégration (Paramètres → Appareils et services → Rugby Live → Configurer), par type d'action : rayons, ondes, projecteurs, confettis. Par défaut : essais = rayons + projecteurs ; transformations, pénalités, drops = rayons ; informations = aucun. Les cartons ont leur propre scène.
+
+**Photos des joueurs** : l'intégration charge une fois par jour la liste des joueurs du Top 14 sur le site de la LNR et met l'adresse de la photo dans l'attribut `player_photo`. Rien n'est copié : la photo est affichée depuis le site de la LNR.
+
+**Tester sans match** : ouvrir `tools/animation_preview.html` dans un navigateur (F11 pour le plein écran), choisir l'action, l'équipe, le joueur et les fonds, puis « Jouer ».
+
+**Animations réduites** : si le système de l'écran demande de réduire les animations (Windows : Paramètres → Accessibilité → Effets visuels → « Effets d'animation » désactivé), le navigateur coupe les mouvements et l'animation s'affiche fixe.
 
 ## Fichiers attendus (écran)
 

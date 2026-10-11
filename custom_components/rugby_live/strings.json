@@ -38,7 +38,10 @@
           "sinbin_minutes": "Yellow card length",
           "show_substitutions": "Publish substitutions as events",
           "broadcast_calendar": "TV broadcast calendar (event location = channel)",
-          "animation_seconds": "Animation length"
+          "animation_seconds": "Animation length",
+          "background_try": "Animation background: tries",
+          "background_kick": "Animation background: conversions, penalty goals, drop goals",
+          "background_info": "Animation background: kickoff, half time, full time, cancelled event"
         }
       }
     },
@@ -52,6 +55,14 @@
         "top14": "Top 14",
         "champions_cup": "Champions Cup",
         "challenge_cup": "Challenge Cup"
+      }
+    },
+    "background": {
+      "options": {
+        "rays": "Rays",
+        "rings": "Shockwaves",
+        "beams": "Spotlights",
+        "confetti": "Confetti"
       }
     }
   },

@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rugby Live – test des animations</title>
+<!-- Dev tool: plays the "Direct" view event overlay with fake data. The overlay CSS and
+     markup below are meant for examples/dashboard.yaml (keep them in sync). Open this
+     file in a browser; player photos and logos are hot-linked from the LNR CDN. -->
+<style>
+html,body{margin:0;height:100%;background:#020617;font-family:system-ui,sans-serif;color:#fff;overflow:hidden}
+.rl-wrap{position:relative;height:100vh;overflow:hidden;background:radial-gradient(circle at 50% 30%,#1e293b,#020617);display:flex;align-items:center;justify-content:center}
+.rl-fake{display:flex;align-items:center;gap:4vw;opacity:.9}
+.rl-fake img{height:24vh;width:24vh;object-fit:contain}
+.rl-fake b{font-size:18vh;font-weight:900}
+
+/* ---- overlay (for examples/dashboard.yaml) ----
+   --age: time since the animation started, so a re-render by button-card resumes every
+   layer in phase. --t0: when the foreground enters (after the whistle for cards). */
+.rl-ov{--t0:0s;position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;background:radial-gradient(circle,var(--c) 0%,rgba(0,0,0,.94) 72%);
+  animation:rl-ov 20s linear forwards;z-index:5}
+.rl-ov.rl-iscard{--t0:1.3s}
+@keyframes rl-ov{0%{opacity:0;transform:scale(1.3)}3%{opacity:1;transform:scale(1)}95%{opacity:1}
+  100%{opacity:0;visibility:hidden}}
+.rl-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* background: rays, counter-rays, shockwave rings, stadium beams, confetti, card strobe */
+.rl-burst{position:absolute;width:160vmax;height:160vmax;
+  background:repeating-conic-gradient(rgba(255,255,255,.13) 0deg 8deg,transparent 8deg 22deg);
+  animation:rl-spin 20s linear;animation-delay:calc(0s - var(--age))}
+@keyframes rl-spin{to{transform:rotate(400deg)}}
+.rl-rays2{position:absolute;width:160vmax;height:160vmax;opacity:.45;
+  background:repeating-conic-gradient(rgba(255,255,255,.25) 0deg 3deg,transparent 3deg 17deg);
+  background:repeating-conic-gradient(color-mix(in srgb,var(--c) 60%,#fff) 0deg 3deg,transparent 3deg 17deg);
+  animation:rl-spin2 26s linear infinite;animation-delay:calc(0s - var(--age))}
+@keyframes rl-spin2{to{transform:rotate(-360deg)}}
+.rl-ring{position:absolute;inset:0;margin:auto;width:30vmin;height:30vmin;border-radius:50%;
+  border:.8vmin solid rgba(255,255,255,.75);box-shadow:0 0 4vmin var(--c),inset 0 0 4vmin var(--c);
+  animation:rl-ring 2.4s cubic-bezier(.2,.6,.3,1) infinite}
+@keyframes rl-ring{from{transform:scale(.1);opacity:1}to{transform:scale(5);opacity:0}}
+.rl-beam{position:absolute;bottom:-5vh;width:22vw;height:130vh;transform-origin:50% 100%;
+  background:linear-gradient(to top,rgba(255,255,255,.4),rgba(255,255,255,0) 85%);
+  clip-path:polygon(42% 100%,58% 100%,100% 0,0 0);
+  animation:rl-beam 3.2s ease-in-out infinite alternate;animation-delay:calc(0s - var(--age))}
+.rl-beam.rl-l{left:2vw}.rl-beam.rl-r{right:2vw;animation-name:rl-beam-r}
+@keyframes rl-beam{from{transform:rotate(-35deg)}to{transform:rotate(25deg)}}
+@keyframes rl-beam-r{from{transform:rotate(35deg)}to{transform:rotate(-25deg)}}
+.rl-cf{position:absolute;top:0;height:1.4vw;border-radius:2px;z-index:2;animation:rl-fall 4s linear infinite}
+@keyframes rl-fall{from{transform:translateY(-8vh) rotate(0) rotateX(0)}
+  to{transform:translateY(108vh) rotate(540deg) rotateX(720deg)}}
+.rl-strobe{position:absolute;inset:0;background:radial-gradient(circle,transparent 25%,var(--c) 110%);
+  animation:rl-strobe .9s ease-in-out infinite alternate;animation-delay:calc(0s - var(--age))}
+@keyframes rl-strobe{from{opacity:.15}to{opacity:.75}}
+/* referee whistle (cards), then it gives way to the card */
+.rl-whistle{position:absolute;width:46vh;z-index:3;filter:drop-shadow(0 1vh 2vh rgba(0,0,0,.7));
+  animation:rl-whistle 1.5s ease both;animation-delay:calc(0s - var(--age))}
+@keyframes rl-whistle{0%{opacity:0;transform:scale(0) rotate(-40deg)}14%{opacity:1;transform:scale(1.15) rotate(8deg)}
+  24%,44%,64%{transform:scale(1) rotate(-7deg)}34%,54%,74%{transform:scale(1.06) rotate(7deg)}
+  85%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.8)}}
+.rl-wave{animation:rl-wave .45s ease-in-out infinite}
+@keyframes rl-wave{0%,100%{opacity:0}50%{opacity:1}}
+/* foreground */
+.rl-ovlogo{position:relative;height:26vh;animation:rl-pop 1s ease both;animation-delay:calc(var(--t0) - var(--age))}
+@keyframes rl-pop{0%{transform:scale(0) rotate(-200deg)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+.rl-ovtxt{position:relative;white-space:nowrap;font-weight:900;letter-spacing:.04em;text-align:center;
+  font-size:min(17vh,calc(84vw / var(--n) / .72));text-shadow:0 0 40px var(--c),0 8px 0 #000;
+  animation:rl-fade .4s ease both,rl-shake .45s ease 6,rl-beat 1.2s ease infinite;
+  animation-delay:calc(var(--t0) - var(--age)),calc(var(--t0) - var(--age)),calc(var(--t0) + 2.7s - var(--age))}
+@keyframes rl-beat{50%{transform:scale(1.06)}}
+@keyframes rl-shake{25%{transform:rotate(-3deg) scale(1.08)}75%{transform:rotate(3deg) scale(1.08)}}
+@keyframes rl-fade{from{opacity:0;transform:translateY(2vh)}}
+.rl-ovsub{position:relative;font-size:4.5vh;font-weight:800;margin-top:2vh;text-shadow:0 3px 0 #000;
+  animation:rl-fade .5s ease both;animation-delay:calc(var(--t0) + .6s - var(--age))}
+/* player photo layout */
+.rl-ov.rl-hasph{flex-direction:row;justify-content:center;gap:2vw}
+.rl-phw{position:relative;align-self:flex-end;margin-bottom:-2vh}
+.rl-ph{display:block;height:92vh;filter:drop-shadow(0 0 3vh var(--c)) drop-shadow(0 2vh 3vh rgba(0,0,0,.85));
+  animation:rl-in 1s cubic-bezier(.2,.9,.3,1.15) both;animation-delay:calc(var(--t0) + .25s - var(--age))}
+@keyframes rl-in{0%{opacity:0;transform:translateX(-35vw) scale(.85)}100%{opacity:1;transform:none}}
+.rl-col{position:relative;display:flex;flex-direction:column;align-items:flex-start;max-width:52vw}
+.rl-hasph .rl-ovlogo{height:15vh}
+.rl-hasph .rl-ovtxt{font-size:min(14vh,calc(46vw / var(--n) / .72));text-align:left;transform-origin:left center}
+.rl-band{position:relative;margin-top:2vh;padding:1.2vh 5vh 1.2vh 3vh;background:var(--c);color:var(--fg);white-space:nowrap;
+  font-size:min(6vh,calc(44vw / var(--n) / .7));font-weight:900;text-transform:uppercase;letter-spacing:.02em;
+  clip-path:polygon(0 0,100% 0,94% 100%,0 100%);
+  animation:rl-band .7s ease both;animation-delay:calc(var(--t0) + .9s - var(--age))}
+@keyframes rl-band{from{clip-path:polygon(0 0,0 0,0 100%,0 100%)}}
+.rl-hasph .rl-ovsub{margin-top:1.5vh;animation-delay:calc(var(--t0) + 1.4s - var(--age))}
+/* the card itself: over the player's shoulder, or in place of the logo without photo */
+.rl-card{position:relative;width:20vh;height:28vh;margin-bottom:3vh;border-radius:1.4vh;
+  border:.5vh solid rgba(255,255,255,.35);overflow:hidden;background:var(--c);
+  background:linear-gradient(150deg,color-mix(in srgb,var(--c) 55%,#fff),var(--c) 45%,color-mix(in srgb,var(--c) 70%,#000));
+  box-shadow:0 0 5vh var(--c),0 2vh 4vh rgba(0,0,0,.6);
+  animation:rl-card-in .8s cubic-bezier(.2,1.3,.4,1) both,rl-card-glow 1s ease-in-out infinite alternate;
+  animation-delay:calc(var(--t0) + .6s - var(--age)),calc(var(--t0) + 1.4s - var(--age))}
+.rl-card::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.5) 45%,transparent 55%)}
+.rl-phw .rl-card{position:absolute;top:3vh;right:2vh;margin:0}
+@keyframes rl-card-in{from{opacity:0;transform:translate(30vw,-70vh) rotate(-80deg) rotateY(180deg) scale(1.8)}
+  to{opacity:1;transform:rotate(12deg)}}
+@keyframes rl-card-glow{from{transform:rotate(12deg)}
+  to{transform:rotate(12deg) scale(1.05);box-shadow:0 0 10vh 2vh var(--c),0 2vh 4vh rgba(0,0,0,.6)}}
+@media (prefers-reduced-motion:reduce){.rl-burst,.rl-rays2,.rl-ovtxt,.rl-ovlogo,.rl-ph,.rl-band,.rl-beam,
+  .rl-card,.rl-strobe,.rl-ovsub{animation:none}.rl-ring,.rl-cf,.rl-whistle{display:none}}
+/* ---- end overlay ---- */
+
+.panel{position:fixed;left:12px;bottom:12px;z-index:10;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  max-width:calc(100vw - 24px);padding:10px 12px;border-radius:10px;background:rgba(15,23,42,.92);
+  border:1px solid #334155;font-size:14px;transition:opacity .3s}
+.panel.dim{opacity:.15}.panel:hover{opacity:1}
+.panel label{display:flex;align-items:center;gap:6px;color:#94a3b8}
+.panel select,.panel input,.panel button{font:inherit;color:#fff;background:#0b1220;border:1px solid #475569;border-radius:6px;padding:5px 8px}
+.panel input[type=number]{width:56px}
+.panel input[type=checkbox]{padding:0}
+.panel button{background:#c8102e;border-color:#c8102e;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="rl-wrap" id="wrap">
+  <div class="rl-fake" id="fake"></div>
+</div>
+
+<div class="panel" id="panel">
+  <label>Action <select id="type"></select></label>
+  <label>Équipe <select id="team"></select></label>
+  <label>Joueur <select id="player"></select></label>
+  <label>Minute <input id="minute" type="number" min="1" max="100" value="23"></label>
+  <label>Durée <input id="dur" type="number" min="5" max="60" value="20"> s</label>
+  <span title="Options de l'intégration ; remis aux valeurs par défaut quand l'action change ; sans effet sur les cartons" style="color:#94a3b8">Fond :</span>
+  <label><input type="checkbox" data-layer="rays"> Rayons</label>
+  <label><input type="checkbox" data-layer="rings"> Ondes</label>
+  <label><input type="checkbox" data-layer="beams"> Projecteurs</label>
+  <label><input type="checkbox" data-layer="confetti"> Confettis</label>
+  <label title="Windows « Effets d'animation » désactivé = animations coupées par le navigateur"><input type="checkbox" id="force" checked> Forcer les animations</label>
+  <button id="play">Jouer</button>
+  <button id="stop" style="background:#0b1220;border-color:#475569">Stop</button>
+</div>
+
+<script>
+const LOGO = (slug) => `https://cdn.lnr.fr/club/${slug}/photo/logo.006973c3fdaf23345d4c26b914dcca87e8ef842a`;
+const PH = (path) => `https://cdn.lnr.fr/joueur/${path}`;
+const TEAMS = {
+  '25922': {name: 'Stade Toulousain', color: '#c8102e', logo: LOGO('toulouse'), players: {
+    'Antoine Dupont': PH('2449-antoine-dupont/photo/photoFull-m-2x.a427a6534c51c48d409965ed84a1cca50523c583'),
+    'Thomas Ramos': PH('2450-thomas-ramos/photo/photoFull-m-2x.b74ab496f94d12765b348b3047522f4447040371'),
+    'Romain Ntamack': PH('2436-romain-ntamack/photo/photoFull-m-2x.0a3314f3a160b803da03668bfb61434b8e3cc437')}},
+  '25921': {name: 'Stade Français Paris', color: '#e6007e', logo: LOGO('paris'), players: {
+    'Louis Carbonel': PH('1428-louis-carbonel/photo/photoFull-m-2x.d0eb982a5531ae3badfe3343bc5ddcfe40b2548e')}},
+  '25918': {name: 'Montpellier Hérault', color: '#1b3f8b', logo: LOGO('montpellier'), players: {
+    'Stuart Hogg': PH('12786-stuart-hogg/photo/photoFull-m-2x.920f2ae113a70cd21752c59a5652ede8ff9fc966')}},
+  '999': {name: 'Leinster (hors Top 14)', color: '#0a5ea8', logo: null, players: {}},
+};
+const TXT = {try: 'ESSAI !', conversion: 'TRANSFORMATION', penalty_goal: 'PÉNALITÉ', drop_goal: 'DROP !',
+  yellow_card: 'CARTON JAUNE', red_card: 'CARTON ROUGE', kickoff: "COUP D'ENVOI", half_time: 'MI-TEMPS',
+  second_half: 'REPRISE', extra_time: 'PROLONGATIONS', full_time: 'FIN DU MATCH', revoked: 'ACTION ANNULÉE'};
+const TEAMLESS = ['kickoff', 'half_time', 'second_half', 'extra_time', 'full_time'];
+const WHISTLE = `<svg class="rl-whistle" viewBox="0 0 180 100" aria-hidden="true">
+  <circle cx="16" cy="34" r="9" fill="none" stroke="#cbd5e1" stroke-width="4"/>
+  <rect x="46" y="26" width="92" height="24" rx="6" fill="#e2e8f0"/>
+  <circle cx="50" cy="60" r="32" fill="#e2e8f0"/><circle cx="50" cy="60" r="11" fill="#475569"/>
+  <rect x="96" y="30" width="16" height="7" rx="2" fill="#475569"/>
+  <g fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round">
+    <path class="rl-wave" d="M148 26 q8 12 0 24"/>
+    <path class="rl-wave" style="animation-delay:.12s" d="M158 18 q14 20 0 40"/>
+    <path class="rl-wave" style="animation-delay:.24s" d="M168 10 q20 28 0 56"/></g></svg>`;
+const $ = (id) => document.getElementById(id);
+
+$('type').innerHTML = Object.entries(TXT).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+$('team').innerHTML = Object.entries(TEAMS).map(([k, t]) => `<option value="${k}">${t.name}</option>`).join('');
+const fillPlayers = () => {
+  const t = TEAMS[$('team').value];
+  $('player').innerHTML = Object.keys(t.players).map((n) => `<option>${n}</option>`).join('')
+    + '<option value="">(sans photo)</option>';
+};
+$('team').onchange = fillPlayers;
+$('team').value = '25922';  // numeric keys are sorted: Leinster would come first
+fillPlayers();
+$('fake').innerHTML = `<img src="${TEAMS['25922'].logo}"><b>17 - 12</b><img src="${TEAMS['25921'].logo}">`;
+
+// Same as the Direct view (examples/dashboard.yaml): `aa` = sensor.match_suivi_animation
+// attributes; only the team colour / logo lookup differs (TEAMS here, score sensor there).
+const KIND = {try: 'Essai', conversion: 'Transformation', penalty_goal: 'Pénalité', drop_goal: 'Drop',
+  yellow_card: 'Carton jaune', red_card: 'Carton rouge'};
+function overlayHtml(t, aa, age, durMs) {
+  const tid = aa.team_id;
+  const card = t === 'yellow_card' || t === 'red_card';
+  const scoring = ['try', 'conversion', 'penalty_goal', 'drop_goal'].includes(t);
+  const info = !card && !scoring;  // kickoff, half time, full time, cancelled event: text only
+  const tcolor = tid ? (TEAMS[tid] || {}).color : null;
+  const tlogo = tid ? (TEAMS[tid] || {}).logo : null;
+  const color = t === 'yellow_card' ? '#eab308' : t === 'red_card' ? '#dc2626' : (!info && tcolor) || '#334155';
+  const fg = t === 'yellow_card' ? '#111' : '#fff';
+  const special = tid === '25922' && scoring;
+  const media = `/local/rugby_live/anim/${special ? t + '_toulouse' : t}.mp4#t=${(age / 1000 % 6).toFixed(1)}`;
+  const label = TXT[t] || t;
+  const min = aa.minute ? aa.minute + "'" : '';
+  const sec = age / 1000;
+  // Background layers picked in the integration options (cards: whistle scene). Offsets
+  // add to the age and confetti positions are index-based (no Math.random), so a
+  // re-render keeps everything in place.
+  const bg = aa.background || [];
+  const rings = [0, 0.8, 1.6].map((o) => `<div class="rl-ring" style="animation-delay:-${(sec + o).toFixed(2)}s"></div>`).join('');
+  const cols = [color, '#ffffff', '#fbbf24'];
+  const confetti = card || !bg.includes('confetti') ? '' : Array.from({length: 36}, (_, i) =>
+    `<i class="rl-cf" style="left:${(i * 37) % 100}%;width:${(0.6 + (i % 3) * 0.3).toFixed(1)}vw;background:${cols[i % 3]};`
+    + `animation-duration:${(3 + (i % 5) * 0.6).toFixed(1)}s;animation-delay:-${(sec + i * 0.53).toFixed(2)}s"></i>`).join('');
+  const back = card ? `<div class="rl-strobe"></div>${rings}`
+    : (bg.includes('rays') ? `<div class="rl-burst" style="animation-duration:${durMs}ms"></div><div class="rl-rays2"></div>` : '')
+      + (bg.includes('beams') ? '<div class="rl-beam rl-l"></div><div class="rl-beam rl-r"></div>' : '')
+      + (bg.includes('rings') ? rings : '');
+  // Foreground: player photo + card / name band, else logo (or card) + title + line.
+  const photo = !info && aa.player_photo;
+  const logo = tlogo && !info ? `<img class="rl-ovlogo" src="${tlogo}">` : '';
+  const cardEl = card ? '<div class="rl-card"></div>' : '';
+  const title = `<div class="rl-ovtxt" style="--n:${label.length}">${label}</div>`;
+  const line = [t === 'revoked' && KIND[aa.revoked_type], aa.player || aa.team_name, min].filter(Boolean).join(' • ');
+  const front = photo
+    ? `<div class="rl-phw"><img class="rl-ph" src="${photo}" onerror="this.parentNode.remove()">${cardEl}</div>
+       <div class="rl-col">${logo}${title}
+         <div class="rl-band" style="--n:${aa.player.length}">${aa.player}</div>
+         <div class="rl-ovsub">${[aa.team_name, min].filter(Boolean).join(' • ')}</div></div>`
+    : `${card ? cardEl : logo}${title}<div class="rl-ovsub">${line}</div>`;
+  return `<div class="rl-ov${photo ? ' rl-hasph' : ''}${card ? ' rl-iscard' : ''}" data-k="${aa.started_at}"
+    style="--c:${color};--fg:${fg};--age:${age}ms;animation-duration:${durMs}ms;animation-delay:-${age}ms">
+    <video class="rl-vid" src="${media}" autoplay muted loop playsinline onerror="this.remove()"></video>
+    ${back}${front}${confetti}${card ? WHISTLE : ''}</div>`;
+}
+
+let timer = null;
+function stop() {
+  clearTimeout(timer);
+  document.querySelectorAll('.rl-ov').forEach((e) => e.remove());
+  $('panel').classList.remove('dim');
+}
+function play() {
+  stop();
+  const t = $('type').value;
+  const team = TEAMLESS.includes(t) ? null : $('team').value;
+  const player = team ? $('player').value : '';
+  const aa = {
+    team_id: team,
+    team_name: team ? TEAMS[team].name : null,
+    player: player || null,
+    player_photo: player ? TEAMS[team].players[player] : null,
+    minute: TEAMLESS.includes(t) ? null : +$('minute').value,
+    revoked_type: t === 'revoked' ? 'try' : null,
+    background: [...document.querySelectorAll('[data-layer]:checked')].map((cb) => cb.dataset.layer),
+    started_at: new Date().toISOString(),
+  };
+  const durMs = Math.max(5, Math.min(60, +$('dur').value || 20)) * 1000;
+  $('wrap').insertAdjacentHTML('beforeend', overlayHtml(t, aa, 0, durMs));
+  $('panel').classList.add('dim');
+  timer = setTimeout(stop, durMs);
+}
+// Integration defaults (const.py DEFAULT_OPTIONS background_*), reset on each action change.
+const DEFAULT_BG = {try: ['rays', 'beams'], conversion: ['rays'], penalty_goal: ['rays'], drop_goal: ['rays']};
+const setDefaults = () => document.querySelectorAll('[data-layer]').forEach((cb) => {
+  cb.checked = (DEFAULT_BG[$('type').value] || []).includes(cb.dataset.layer);
+});
+$('type').onchange = setDefaults;
+setDefaults();
+// Preview only: drop the prefers-reduced-motion rule (Windows "Animation effects" off).
+const sheet = document.styleSheets[0];
+const motionRule = [...sheet.cssRules].find((r) => r.conditionText && r.conditionText.includes('reduced-motion'));
+const setForce = () => {
+  const i = [...sheet.cssRules].indexOf(motionRule);
+  if ($('force').checked && i >= 0) sheet.deleteRule(i);
+  if (!$('force').checked && i < 0) sheet.insertRule(motionRule.cssText, sheet.cssRules.length);
+};
+$('force').onchange = setForce;
+setForce();
+$('play').onclick = play;
+$('stop').onclick = stop;
+document.addEventListener('keydown', (e) => {
+  if (e.key === ' ' && e.target.tagName !== 'SELECT') { e.preventDefault(); play(); }
+  if (e.key === 'Escape') stop();
+});
+</script>
+</body>
+</html>

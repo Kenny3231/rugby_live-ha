@@ -17,8 +17,12 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import EspnClient, EspnError
 from .const import (
+    BACKGROUND_LAYERS,
     COMPETITIONS,
     CONF_ANIMATION_SECONDS,
+    CONF_BG_INFO,
+    CONF_BG_KICK,
+    CONF_BG_TRY,
     CONF_BROADCAST_CALENDAR,
     CONF_COMPETITIONS,
     CONF_FAVORITES,
@@ -167,6 +171,15 @@ class RugbyLiveOptionsFlow(OptionsFlowWithReload):
                     )
                 ),
                 vol.Coerce(int),
+            )
+        for key in (CONF_BG_TRY, CONF_BG_KICK, CONF_BG_INFO):
+            fields[vol.Required(key, default=current[key])] = selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=list(BACKGROUND_LAYERS),
+                    multiple=True,
+                    mode=selector.SelectSelectorMode.LIST,
+                    translation_key="background",
+                )
             )
         fields[vol.Required(CONF_SHOW_SUBSTITUTIONS, default=current[CONF_SHOW_SUBSTITUTIONS])] = (
             selector.BooleanSelector()

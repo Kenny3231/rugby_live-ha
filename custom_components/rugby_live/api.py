@@ -16,7 +16,7 @@ from typing import Any
 
 import aiohttp
 
-from .models import Match, MatchStatus, Play, PlayType, Team
+from .models import LnrPlayer, Match, MatchStatus, Play, PlayType, Team
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -85,10 +85,15 @@ def team_logo(team_id: str, espn_logo: str | None) -> str | None:
     return None
 
 
+def _words(text: str) -> list[str]:
+    """Lower-case ASCII words: 'Alo-Émile' -> ['alo', 'emile']."""
+    plain = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode().lower()
+    return re.findall(r"[a-z0-9]+", plain)
+
+
 def _stems(text: str) -> set[str]:
     """5-letter stems of the words of a name: 'Stade Toulousain' and 'Toulouse' share 'toulo'."""
-    plain = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode().lower()
-    return {w[:5] for w in re.findall(r"[a-z0-9]+", plain) if len(w) >= 3}
+    return {w[:5] for w in _words(text) if len(w) >= 3}
 
 
 def names_match(summary: str, *team_names: str) -> bool:
@@ -258,3 +263,87 @@ class EspnClient:
                 logos = raw.get("logos") or [{}]
                 teams.append(_parse_team({**raw, "logo": logos[0].get("href")}))
         return teams
+
+
+# ------------------------------------------------------------------ LNR photos
+# The LNR players page loads its list from a public Meilisearch index; the page itself
+# carries the index name, host and search-only key, read again on each refresh so a
+# rotated key keeps working. Photos are cut-outs (transparent WebP), hot-linked only.
+
+LNR_PLAYERS_PAGE = "https://top14.lnr.fr/joueurs"
+_LNR_CONFIG = re.compile(
+    r":index-name='\"([^\"]+)\"'.*?:host-url='\"([^\"]+)\"'.*?:api-key='\"([^\"]+)\"'", re.S
+)
+
+
+def parse_lnr_config(html: str) -> tuple[str, str] | None:
+    """(search URL, search key) from the players page, None if the page changed."""
+    found = _LNR_CONFIG.search(html)
+    if not found:
+        return None
+    index, host, key = found.groups()
+    host = host.replace("\\/", "/").rstrip("/")  # JSON-escaped in the page
+    return f"{host}/indexes/{index}/search", key
+
+
+def parse_lnr_players(data: dict[str, Any]) -> list[LnrPlayer]:
+    """Players with a photo from a Meilisearch response."""
+    players = []
+    for hit in data.get("hits") or []:
+        image = hit.get("image") or {}
+        photo = image.get("m-2x") or image.get("original")
+        club = ((hit.get("club") or {}).get("url") or "").rsplit("/", 1)[-1]
+        if photo and club:
+            players.append(
+                LnrPlayer(
+                    club=club,
+                    first=frozenset(_words(hit.get("first_name") or "")),
+                    last=frozenset(_words(hit.get("last_name") or "")),
+                    photo=photo,
+                )
+            )
+    return players
+
+
+def player_photo(
+    players: list[LnrPlayer], team_id: str | None, full_name: str | None
+) -> str | None:
+    """Photo of an ESPN player. LNR adds middle names ('Hugo Domingo MIOTTI' for ESPN's
+    'Domingo Miotti'): every ESPN word must appear in the LNR name, within the club when
+    ESPN's team is a known Top 14 club, else league-wide. Ambiguous -> None (logo shown)."""
+    words = _words(full_name or "")
+    if not words:
+        return None
+    slug = LNR_SLUGS.get(team_id or "")
+    pool = [p for p in players if p.club == slug] if slug else players
+    hits = [p for p in pool if set(words) <= p.first | p.last]
+    if not hits and slug:  # nickname vs full first name ('Ollie' / 'Oliver'): surname only
+        hits = [p for p in pool if words[-1] in p.last]
+    return hits[0].photo if len(hits) == 1 else None
+
+
+async def lnr_players(session: aiohttp.ClientSession) -> list[LnrPlayer]:
+    """All Top 14 players with a photo; empty on any failure (photos are a bonus)."""
+    headers = {"User-Agent": USER_AGENT}
+    try:
+        async with session.get(LNR_PLAYERS_PAGE, headers=headers, timeout=TIMEOUT) as resp:
+            config = parse_lnr_config(await resp.text())
+        if config is None:
+            _LOGGER.debug("LNR players page changed: no search config found")
+            return []
+        url, key = config
+        body = {
+            "q": "",
+            "limit": 2000,
+            "attributesToRetrieve": ["first_name", "last_name", "club.url", "image"],
+        }
+        async with session.post(
+            url, json=body, headers={**headers, "Authorization": f"Bearer {key}"}, timeout=TIMEOUT
+        ) as resp:
+            if resp.status >= 400:
+                _LOGGER.debug("LNR search HTTP %s", resp.status)
+                return []
+            return parse_lnr_players(await resp.json(content_type=None))
+    except (aiohttp.ClientError, TimeoutError, ValueError) as err:
+        _LOGGER.debug("LNR players unavailable: %r", err)
+        return []

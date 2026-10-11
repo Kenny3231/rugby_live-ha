@@ -38,7 +38,10 @@
           "sinbin_minutes": "Durée du carton jaune",
           "show_substitutions": "Publier les remplacements comme événements",
           "broadcast_calendar": "Calendrier des diffusions TV (lieu de l'événement = chaîne)",
-          "animation_seconds": "Durée d'une animation"
+          "animation_seconds": "Durée d'une animation",
+          "background_try": "Fond des animations : essais",
+          "background_kick": "Fond des animations : transformations, pénalités, drops",
+          "background_info": "Fond des animations : coup d'envoi, mi-temps, fin, action annulée"
         }
       }
     },
@@ -52,6 +55,14 @@
         "top14": "Top 14",
         "champions_cup": "Champions Cup",
         "challenge_cup": "Challenge Cup"
+      }
+    },
+    "background": {
+      "options": {
+        "rays": "Rayons",
+        "rings": "Ondes",
+        "beams": "Projecteurs",
+        "confetti": "Confettis"
       }
     }
   },

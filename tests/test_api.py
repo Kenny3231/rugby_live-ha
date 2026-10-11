@@ -7,9 +7,12 @@ from pathlib import Path
 
 from custom_components.rugby_live.api import (
     names_match,
+    parse_lnr_config,
+    parse_lnr_players,
     parse_plays,
     parse_scoreboard,
     parse_status,
+    player_photo,
     team_logo,
 )
 from custom_components.rugby_live.models import MatchStatus, PlayType
@@ -72,3 +75,42 @@ def test_team_logo_prefers_official_and_drops_country_flags() -> None:
     assert "cdn.lnr.fr/club/bayonne" in team_logo("25912", None)
     assert team_logo("999", "https://a.espncdn.com/i/teamlogos/countries/500/usa.png") is None
     assert team_logo("999", "https://x/500/999.png") == "https://x/500/999.png"
+
+
+def test_parse_lnr_config_from_players_page() -> None:
+    html = """<players-filters
+        :index-name='"rugbymen_top14"' :index-key='"rugbymen"'
+        :host-url='"https:\\/\\/search.lnr.fr\\/"' :api-key='"abc123"' :has-search-bar="true"
+    />"""
+    assert parse_lnr_config(html) == (
+        "https://search.lnr.fr/indexes/rugbymen_top14/search",
+        "abc123",
+    )
+    assert parse_lnr_config("<html></html>") is None
+
+
+def test_player_photo_matches_espn_names() -> None:
+    players = parse_lnr_players(load("lnr_players.json"))
+    assert len(players) == 8  # the one without image is dropped
+
+    def who(team_id: str | None, name: str | None) -> str | None:
+        url = player_photo(players, team_id, name)
+        return url.split("/")[-2] if url else None
+
+    # Scorers of the real match 604399 under their ESPN names; LNR adds middle names.
+    match = parse_scoreboard(load("top14_scoreboard_2026-10-10.json"), "270559")[0]
+    expected = {
+        "292739": ("25921", "carbonel"),
+        "292583": ("25921", "tanga"),
+        "295124": ("25921", "duguivalu"),
+        "117466": ("25921", "alo-emile"),
+        "270445": ("25918", "miotti"),
+        "134149": ("25918", "hogg"),
+    }
+    for athlete_id, (team_id, slug) in expected.items():
+        assert who(team_id, match.athletes[athlete_id]) == slug
+    assert who("25922", "Tom Ramos") == "ramos"  # nickname: surname within the club
+    assert who("999", "Thomas Ramos") == "ramos"  # foreign team id: full name, league-wide
+    assert who("999", "Ramos") is None  # ambiguous league-wide
+    assert who("25921", "Unknown Player") is None
+    assert who("25921", None) is None

@@ -84,3 +84,13 @@ class Play:
     home_score: int
     away_score: int
     athlete_id: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class LnrPlayer:
+    """A Top 14 player from the LNR site, for his cut-out photo."""
+
+    club: str  # LNR club slug, as in api.LNR_SLUGS
+    first: frozenset[str]  # normalised name words
+    last: frozenset[str]
+    photo: str
