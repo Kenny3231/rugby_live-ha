@@ -13,6 +13,13 @@
 
 ## Cartes
 
+### 0. `rugby-live-direct-card` (faite le 11/10, demande de David)
+
+- Vue « Direct » plein écran (vue Panneau) ou en 16:9 dans une section : bandeau des matchs, tableau de score façon TV, détail des points, bonus Top 14, animations des actions (photos LNR, fonds choisis dans les options de l'intégration, scène des cartons).
+- Retrouve ses entités par leur clé de traduction sur l'appareil choisi (`device`, défaut : « Match suivi » ; `favorite`, défaut : première équipe favorite).
+- Options (éditeur visuel `getConfigForm`) : `ticker`, `watermark`, `breakdown`, `bonus`, `animations`, `force_motion`.
+- Textes en français seulement pour l'instant.
+
 ### 1. `rugby-live-scoreboard-card`
 
 - Deux équipes avec logo (URL ESPN `.../teamlogos/rugby/teams/500/{teamId}.png`, repli sur initiales colorées si 404 ou logo « pays » erroné), score en grand, statut (badge **LIVE** animé, MT, Terminé, coup d'envoi dans …), minute.
