@@ -1,16 +1,149 @@
-# Rugby Live: "Direct" view built with the integration's own card (no button-card, no
-# template). The card is loaded automatically by the integration; every option can be set
-# in the visual editor. Empty device / favorite = chosen automatically.
+# Rugby Live: dashboard built with the integration's own cards (no button-card, no
+# template). The cards are loaded automatically by the integration; every option can be
+# set in the visual editor. `device`: a device id, or `followed` (Match suivi) /
+# `favorite` (first favourite team); empty = the card's default.
 title: Rugby (cartes)
 views:
+- title: Rugby
+  path: rugby
+  icon: mdi:rugby
+  type: sections
+  max_columns: 4
+  sections:
+  - type: grid
+    cards:
+    - type: heading
+      heading: Équipe favorite
+      icon: mdi:star
+    - type: custom:rugby-live-scoreboard-card
+      device: favorite
+    - type: custom:rugby-live-timeline-card
+      device: favorite
+      limit: 10
+  - type: grid
+    cards:
+    - type: heading
+      heading: Match suivi
+      icon: mdi:television-play
+    - type: tile
+      entity: select.rugby_live_match_suivi
+      name: Choisir le match
+      features:
+      - type: select-options
+      grid_options:
+        columns: 12
+    - type: custom:rugby-live-scoreboard-card
+      device: followed
+    - type: custom:rugby-live-timeline-card
+      device: followed
+    - type: tile
+      entity: event.match_suivi_evenement_du_match
+      name: Dernier signal (pour les animations)
+      grid_options:
+        columns: 12
+  - type: grid
+    cards:
+    - type: heading
+      heading: Tous les matchs
+      icon: mdi:scoreboard
+    - type: custom:rugby-live-multiplex-card
+  - type: grid
+    cards:
+    - type: heading
+      heading: Calendrier
+      icon: mdi:calendar
+    - type: custom:rugby-live-fixtures-card
+    - type: custom:rugby-live-fixtures-card
+      device: favorite
+      count_upcoming: 3
+      count_results: 3
+  - type: grid
+    column_span: 2
+    cards:
+    - type: heading
+      heading: Retard (anti-spoil)
+      icon: mdi:timer-sand
+    - type: tile
+      entity: number.rugby_live_retard
+      name: Retard
+      features:
+      - type: numeric-input
+        style: buttons
+      grid_options:
+        columns: 12
+    - type: button
+      name: -5 s
+      icon: mdi:timer-minus-outline
+      show_state: false
+      tap_action:
+        action: perform-action
+        perform_action: rugby_live.set_delay
+        data:
+          seconds: -5
+          relative: true
+      grid_options:
+        columns: 3
+        rows: 1
+    - type: button
+      name: -1 s
+      icon: mdi:timer-minus-outline
+      show_state: false
+      tap_action:
+        action: perform-action
+        perform_action: rugby_live.set_delay
+        data:
+          seconds: -1
+          relative: true
+      grid_options:
+        columns: 3
+        rows: 1
+    - type: button
+      name: +1 s
+      icon: mdi:timer-plus-outline
+      show_state: false
+      tap_action:
+        action: perform-action
+        perform_action: rugby_live.set_delay
+        data:
+          seconds: 1
+          relative: true
+      grid_options:
+        columns: 3
+        rows: 1
+    - type: button
+      name: +5 s
+      icon: mdi:timer-plus-outline
+      show_state: false
+      tap_action:
+        action: perform-action
+        perform_action: rugby_live.set_delay
+        data:
+          seconds: 5
+          relative: true
+      grid_options:
+        columns: 3
+        rows: 1
+    - type: tile
+      entity: button.rugby_live_calibrer_le_retard
+      name: Calibrer (au moment où l'action passe à la TV)
+      tap_action:
+        action: perform-action
+        perform_action: button.press
+        target:
+          entity_id: button.rugby_live_calibrer_le_retard
+      grid_options:
+        columns: 12
+    - type: tile
+      entity: sensor.rugby_live_etat_de_l_api
+      name: Source ESPN
+      grid_options:
+        columns: 12
 - title: Direct
   path: direct
   icon: mdi:television-classic
   type: panel
   cards:
   - type: custom:rugby-live-direct-card
-    # device: <Match suivi device>      # followed match
-    # favorite: <favourite team device> # next match, special videos
     ticker: true
     watermark: true
     breakdown: true

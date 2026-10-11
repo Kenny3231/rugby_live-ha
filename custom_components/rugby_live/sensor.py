@@ -9,8 +9,9 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.util import dt as dt_util
 
-from .const import ANIMATED_EVENTS
+from .const import ANIMATED_EVENTS, FIXTURES_ATTRIBUTE_PAST
 from .coordinator import MatchView, RugbyLiveConfigEntry, RugbyLiveCoordinator
 from .entity import (
     GLOBAL_DEVICE,
@@ -119,6 +120,7 @@ class LiveMatchesSensor(RugbyLiveEntity, SensorEntity):
 
 class CompetitionNextMatchSensor(RugbyLiveEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _unrecorded_attributes = frozenset({"fixtures"})
 
     def __init__(self, coordinator: RugbyLiveCoordinator, key: str) -> None:
         super().__init__(coordinator, competition_device(key), "next_match")
@@ -131,15 +133,24 @@ class CompetitionNextMatchSensor(RugbyLiveEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
+        # Recent results and upcoming matches of the scanned window (fixtures card).
+        since = dt_util.utcnow() - FIXTURES_ATTRIBUTE_PAST
+        pool = {**self.coordinator.fixtures, **self.coordinator.matches}.values()
+        fixtures = [
+            match_summary(self, self.coordinator.view(m))
+            for m in sorted(pool, key=lambda m: m.kickoff)
+            if m.league_id == self.league and m.kickoff >= since
+        ]
         match = self.coordinator.next_match(league=self.league)
         if match is None:
-            return {}
+            return {"fixtures": fixtures}
         return {
             "match_id": match.id,
             "venue": match.venue,
             "channel": self.coordinator.channels.get(match.id),
             **team_attrs(match.home, "home"),
             **team_attrs(match.away, "away"),
+            "fixtures": fixtures,
         }
 
 

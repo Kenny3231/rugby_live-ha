@@ -71,6 +71,7 @@ FIXTURE_REFRESH = timedelta(hours=6)
 PLAYERS_REFRESH = timedelta(hours=24)  # LNR player photos
 MAX_DELAY = 300
 EVENTS_ATTRIBUTE_CAP = 60
+FIXTURES_ATTRIBUTE_PAST = timedelta(days=4)  # results kept in the fixtures attribute
 
 # Event types that play an animation on the followed match, one after the other.
 ANIMATED_EVENTS = (

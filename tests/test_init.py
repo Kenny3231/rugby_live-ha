@@ -51,6 +51,8 @@ async def test_setup_creates_stable_entities(hass: HomeAssistant) -> None:
     last = hass.states.get("sensor.stade_francais_paris_last_event")
     assert last.state.startswith("Conversion")
     assert hass.states.get("number.rugby_live_delay").state == "0.0"
+    # Fixtures card data (contents depend on today's date: only the key is checked).
+    assert "fixtures" in hass.states.get("sensor.top_14_next_match").attributes
 
     await hass.services.async_call(
         DOMAIN, "set_delay", {"seconds": 30, "relative": True}, blocking=True

@@ -3,6 +3,7 @@ export interface HassEntity {
   entity_id: string;
   state: string;
   attributes: Record<string, any>;
+  last_changed?: string;
 }
 
 export interface HassEntityEntry {

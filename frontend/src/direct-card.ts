@@ -5,6 +5,9 @@ import { LitElement, html, nothing, type PropertyValues, type TemplateResult } f
 import { keyed } from 'lit/directives/keyed.js';
 import { directStyles } from './styles';
 import type { Hass, HassEntity } from './hass';
+import {
+  BREAKDOWN, COMP, LIVE, STATUS, hhmm, hide, logo, longDate, usable, type Attrs, type Counters,
+} from './common';
 
 export interface DirectConfig {
   type: string;
@@ -19,13 +22,7 @@ export interface DirectConfig {
 }
 
 const DEFAULTS = { ticker: true, watermark: true, breakdown: true, bonus: true, animations: true, force_motion: false };
-const COMP: Record<string, string> = { top14: 'TOP 14', champions_cup: 'CHAMPIONS CUP', challenge_cup: 'CHALLENGE CUP' };
 const WM: Record<string, string> = { top14: 'Top 14', champions_cup: 'Champions Cup', challenge_cup: 'Challenge Cup' };
-const STATUS: Record<string, string> = {
-  scheduled: 'À venir', first_half: '1re mi-temps', half_time: 'Mi-temps', second_half: '2e mi-temps',
-  extra_time: 'Prolongations', finished: 'Terminé', postponed: 'Reporté', cancelled: 'Annulé', unknown: '',
-};
-const LIVE = ['first_half', 'half_time', 'second_half', 'extra_time'];
 const PERIOD: Record<string, string> = { first_half: '1re MT', second_half: '2e MT', extra_time: 'PROLONG.' };
 const DAYS = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
 const TITLE: Record<string, string> = {
@@ -38,24 +35,6 @@ const KIND: Record<string, string> = {
   yellow_card: 'Carton jaune', red_card: 'Carton rouge',
 };
 const SCORING = ['try', 'conversion', 'penalty_goal', 'drop_goal'];
-const BREAKDOWN: [string, string, string][] = [
-  ['try', 'essai', 'essais'], ['conversion', 'transfo', 'transfos'],
-  ['penalty_goal', 'pénalité', 'pénalités'], ['drop_goal', 'drop', 'drops'],
-];
-
-type Attrs = Record<string, any>;
-type Counters = Record<string, number>;
-
-const hhmm = (d: Date) => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }).replace(':', 'h');
-const longDate = (d: Date) => d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-const hide = (e: Event) => ((e.target as HTMLElement).style.display = 'none');
-const usable = (e?: HassEntity) => !!e && !['unknown', 'unavailable'].includes(e.state);
-
-function logo(url: string | null | undefined, name: string | undefined, color: string | undefined, cls = 'rl-logo') {
-  return url
-    ? html`<img class=${cls} src=${url} @error=${hide} />`
-    : html`<div class="rl-init" style="background:${color || '#334155'}">${(name || '?').slice(0, 3).toUpperCase()}</div>`;
-}
 
 export class RugbyLiveDirectCard extends LitElement {
   static styles = directStyles;
