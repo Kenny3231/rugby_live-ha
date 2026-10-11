@@ -319,7 +319,7 @@ class AnimationSensor(TeamEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        anim = self.coordinator.animation
+        anim = self.coordinator.current_animation()
         if anim is None:
             return {}
         keys = (

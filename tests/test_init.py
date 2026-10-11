@@ -69,4 +69,14 @@ async def test_setup_creates_stable_entities(hass: HomeAssistant) -> None:
     assert coordinator._lagging_days("270559", {"tonight"}, now) == []
     assert coordinator._lagging_days("271937", set(), now) == []
 
+    # Rescheduling the release (every poll) must not cancel the animation timer: it
+    # did, and the first animation of the 11/10 match played forever.
+    followed = coordinator.followed_match()
+    coordinator._animate({"type": "try", "match_id": followed.id, "athlete_id": "117466"})
+    assert coordinator.animation is not None and coordinator._anim_unsub is not None
+    coordinator._schedule_release()
+    assert coordinator._anim_unsub is not None
+    # Scorer unknown when the play arrived: name filled from the scoreboard afterwards.
+    assert coordinator.current_animation()["player"] == "Paul Alo-Emile"
+
     assert await hass.config_entries.async_unload(entry.entry_id)

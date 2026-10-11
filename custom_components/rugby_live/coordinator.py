@@ -347,7 +347,11 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         self._schedule_release()
 
     def _schedule_release(self) -> None:
-        self.async_shutdown_timers()
+        # Only the release timer: cancelling the animation timer too (as shutdown does)
+        # left the first animation of a match playing forever (seen live on 11/10).
+        if self._release_unsub:
+            self._release_unsub()
+            self._release_unsub = None
         times = [t for tl in self.timelines.values() if (t := tl.next_release(self.delay))]
         if times:
             self._release_unsub = async_track_point_in_utc_time(
@@ -390,6 +394,20 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
             }
             self._anim_unsub = async_call_later(self.hass, seconds, self._next_animation)
         self.async_update_listeners()
+
+    def current_animation(self) -> dict[str, Any] | None:
+        """The animation playing now. ESPN can send a play before the scorer's name is in
+        the scoreboard: the name (and photo) are filled in as soon as they are known."""
+        anim = self.animation
+        if anim is None or anim.get("player") or not anim.get("athlete_id"):
+            return anim
+        match = self.matches.get(anim.get("match_id", ""))
+        player = match.athletes.get(anim["athlete_id"]) if match else None
+        if not player:
+            return anim
+        anim["player"] = player
+        anim["player_photo"] = player_photo(self.players, anim.get("team_id"), player)
+        return anim
 
     def _background(self, event_type: str) -> list[str]:
         """Background layers picked in the options; cards have their own scene."""
@@ -448,6 +466,7 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
             "team_name": names.get(ev.team_id or ""),
             "side": match.side_of(ev.team_id),
             "player": player,
+            "athlete_id": ev.athlete_id,
             "player_photo": player_photo(self.players, ev.team_id, player),
             "minute": ev.minute,
             "period": ev.period,
