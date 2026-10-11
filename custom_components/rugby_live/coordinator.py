@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 import random
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -176,7 +176,10 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         try:
             fresh: dict[str, Match] = {}
             for league in self.competitions.values():
-                for match in await self.client.scoreboard(league):
+                board = await self.client.scoreboard(league)
+                for day in self._lagging_days(league, {m.id for m in board}, now):
+                    board += await self.client.scoreboard(league, day)
+                for match in board:
                     fresh[match.id] = match
                     self._ingest_match(match, now)
             self.matches = fresh
@@ -195,6 +198,21 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         self._release(dt_util.utcnow())
         self.update_interval = self._interval(now)
         self._store.async_delay_save(self._store_data, 10)
+
+    def _lagging_days(self, league: str, seen: set[str], now: datetime) -> list[date]:
+        """Days of fixtures due now (pre-match window to 4 h after kickoff) missing from
+        the undated scoreboard: it can lag a match day (11/10 at noon it still listed
+        the 10/10 games, so the evening match would never have been polled live)."""
+        before = timedelta(minutes=self.options[CONF_PREMATCH_WINDOW])
+        return sorted(
+            {
+                m.kickoff.date()
+                for m in self.fixtures.values()
+                if m.league_id == league
+                and m.id not in seen
+                and -timedelta(hours=4) <= m.kickoff - now <= before
+            }
+        )
 
     def _ingest_match(self, match: Match, now: datetime) -> None:
         tl = self.timelines.get(match.id)

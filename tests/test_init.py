@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
+from datetime import timedelta
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.rugby_live.api import parse_plays, parse_scoreboard
@@ -50,5 +53,15 @@ async def test_setup_creates_stable_entities(hass: HomeAssistant) -> None:
         DOMAIN, "set_delay", {"seconds": 30, "relative": True}, blocking=True
     )
     assert hass.states.get("number.rugby_live_delay").state == "30.0"
+
+    # The undated scoreboard can lag a match day: a fixture due now is fetched by date.
+    coordinator = entry.runtime_data
+    now = dt_util.utcnow()
+    soon = replace(matches[1], id="tonight", kickoff=now + timedelta(minutes=10))
+    later = replace(matches[1], id="later", kickoff=now + timedelta(hours=5))
+    coordinator.fixtures = {m.id: m for m in (soon, later)}
+    assert coordinator._lagging_days("270559", set(), now) == [soon.kickoff.date()]
+    assert coordinator._lagging_days("270559", {"tonight"}, now) == []
+    assert coordinator._lagging_days("271937", set(), now) == []
 
     assert await hass.config_entries.async_unload(entry.entry_id)
