@@ -140,7 +140,11 @@ Sites web officiels, pas des API publiques : usage personnel modéré, structure
 
 ### Sources écartées
 
-- Sofascore : HTTP 403 sur les requêtes automatiques.
+- Sofascore : HTTP 403 sur les requêtes automatiques. Sur `api.sofascore.app`, une requête honnête reçoit HTTP 200 avec un corps **vide** (blocage silencieux) ; les intégrations qui passent le font en se faisant passer pour le site (Origin/Referer, empreinte TLS) — écarté.
+- LNR (page feuille de match, websocket) : **plus lente qu'ESPN** — 35/39 scores le 10/10 après-midi (+43 s médiane), 13/13 sur Clermont–UBB le soir (+62 s médiane, jusqu'à +230 s).
+- TheSportsDB : direct seulement foot/NFL/NBA/MLB/NHL toutes les 2 min ; aucun match de rugby en direct (testé avec la clé publique).
+- FlashScore / livescore.in (Livesport s.r.o.) : pas d'API publique, flux interne protégé — écarté.
+- SportMicro « Rugby Micro » (RapidAPI, testé le 11/10 avec la clé gratuite) : Top 14 (1812), Champions Cup (2770), Challenge Cup (1820) présents mais **aucun match après le 4/10** (ni J6, ni matchs à venir, ni direct) ; actions mises à jour toutes les 10 s selon leur doc ; format identique à Sofascore ; WebSockets réservés à l'offre à 349 $/mois — écarté.
 - API payantes bon marché (API-Sports, Highlightly, TheSportsDB) : score seul, sans fil d'événements. Goalserve 150 $/mois, Sportradar/Opta en direct : tarifs professionnels.
 
 ### Pièges rencontrés
