@@ -24,6 +24,8 @@ Tout passe après le **retard réglé** : avec myCanal, l'animation tombe au mom
 
 **Photos des joueurs** : l'intégration charge une fois par jour la liste des joueurs du Top 14 sur le site de la LNR et met l'adresse de la photo dans l'attribut `player_photo`. Rien n'est copié : la photo est affichée depuis le site de la LNR.
 
+**Tableau de score** (vue « Direct », match en cours ou terminé) : panneaux aux couleurs des clubs, score, chrono (minute et période), détail des points sous chaque équipe (essais, transformations, pénalités, drops). Le chiffre qui change grossit une fois l'animation terminée. En **Top 14**, badge **bonus offensif** (vainqueur avec au moins 3 essais de plus) ou **bonus défensif** (défaite de 5 points ou moins) : en pointillés pendant le match, plein à la fin.
+
 **Tester sans match** : ouvrir `tools/animation_preview.html` dans un navigateur (F11 pour le plein écran), choisir l'action, l'équipe, le joueur et les fonds, puis « Jouer ».
 
 **Animations réduites** : si le système de l'écran demande de réduire les animations (Windows : Paramètres → Accessibilité → Effets visuels → « Effets d'animation » désactivé), le navigateur coupe les mouvements et l'animation s'affiche fixe.
