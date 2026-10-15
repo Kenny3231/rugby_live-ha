@@ -537,10 +537,24 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         return MatchView(match, self.competition_of(match), visible)
 
     def team_match(self, team_id: str) -> Match | None:
-        """The team's current match: live first, then upcoming, then finished."""
+        """The team's match to show: live, else just finished (5 h after kickoff, for the
+        final score), else its next match in any competition, else its last result. The
+        next match comes from the fixtures too: a league's current scoreboard can skip it
+        (15/10: Top 14 of the 24th listed, Champions Cup of the 18th not)."""
+        now = dt_util.utcnow()
         mine = [m for m in self.matches.values() if team_id in (m.home.id, m.away.id)]
-        order = {"in": 0, "pre": 1, "post": 2}
-        return min(mine, key=lambda m: (order.get(m.state, 3), m.kickoff), default=None)
+        if live := [m for m in mine if m.state == "in"]:
+            return live[0]
+        recent = [m for m in mine if m.state == "post" and now - m.kickoff < timedelta(hours=5)]
+        if recent:
+            return max(recent, key=lambda m: m.kickoff)
+        # A late kickoff stays "pre" a few minutes after its time.
+        upcoming = [m for m in mine if m.state == "pre" and now - m.kickoff < timedelta(hours=3)]
+        if nxt := self.next_match(team_id=team_id):
+            upcoming.append(nxt)
+        if upcoming:
+            return min(upcoming, key=lambda m: m.kickoff)
+        return max(mine, key=lambda m: m.kickoff, default=None)
 
     def matchday(self, match: Match) -> list[Match]:
         """Matches of the same competition round as `match`. ESPN has no round number:

@@ -79,4 +79,11 @@ async def test_setup_creates_stable_entities(hass: HomeAssistant) -> None:
     # Scorer unknown when the play arrived: name filled from the scoreboard afterwards.
     assert coordinator.current_animation()["player"] == "Paul Alo-Emile"
 
+    # The team's next match can be in another competition, absent from the scoreboards.
+    top14 = replace(matches[1], kickoff=now + timedelta(days=6))
+    cup = replace(matches[1], id="cup", league_id="271937", kickoff=now + timedelta(days=2))
+    coordinator.matches = {top14.id: top14}
+    coordinator.fixtures = {"cup": cup}
+    assert coordinator.team_match(top14.home.id).id == "cup"
+
     assert await hass.config_entries.async_unload(entry.entry_id)
