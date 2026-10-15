@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Démo · Rugby Live pour Home Assistant</title>
+<meta name="description" content="Démo en direct des cartes Rugby Live pour Home Assistant : un match de Top 14 simulé, avec score, animations, fil du match et retard anti-spoil.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="site.css">
+<script type="module" src="rugby-live-cards.js"></script>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="./"><svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="16" rx="14" ry="8.5" transform="rotate(-40 16 16)" fill="#e11d2e"/><path d="M11 21 21 11M13 16l3 3M15.5 13.5l3 3" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>Rugby Live</a>
+  <nav class="nav">
+    <a class="opt" href="./#fonctionnement">Fonctionnement</a>
+    <a class="opt" href="./#installation">Installation</a>
+    <a href="https://github.com/Kenny3231/rugby_live-ha">GitHub</a>
+  </nav>
+</div></header>
+
+<div class="demo-bar"><div class="wrap">
+  <button class="btn primary" id="play" type="button">Pause</button>
+  <button class="btn" id="reset" type="button">Recommencer</button>
+  <label class="ctl">Vitesse
+    <select id="speed"><option value="0.5">×30</option><option value="1" selected>×60</option><option value="2">×120</option></select></label>
+  <label class="ctl" title="Retard anti-spoil : les actions sortent de la file d'attente après ce délai">Retard
+    <input type="range" id="delay" min="0" max="30" value="0"><output id="delayOut">0 s</output></label>
+  <label class="ctl">Animation
+    <input type="range" id="dur" min="4" max="15" value="8"><output id="durOut">8 s</output></label>
+  <label class="ctl">Fond
+    <select id="bg">
+      <option value="default">Réglages par défaut</option><option value="rays">Rayons</option><option value="rings">Ondes</option>
+      <option value="beams">Projecteurs</option><option value="confetti">Confettis</option><option value="all">Tout</option><option value="none">Aucun</option>
+    </select></label>
+  <div class="actions" role="group" aria-label="Déclencher une action">
+    <span class="seg">
+      <label><input type="radio" name="team" value="h" checked>Toulouse</label>
+      <label><input type="radio" name="team" value="a">Bordeaux-Bègles</label>
+    </span>
+    <button type="button" data-a="try">Essai</button>
+    <button type="button" data-a="conversion">Transfo</button>
+    <button type="button" data-a="penalty_goal">Pénalité</button>
+    <button type="button" data-a="drop_goal">Drop</button>
+    <button type="button" data-a="yellow_card" class="yc">Jaune</button>
+    <button type="button" data-a="red_card" class="rc">Rouge</button>
+    <button type="button" data-a="revoked" title="ESPN retire le dernier essai : l'intégration l'annule">Annuler l'essai</button>
+  </div>
+</div></div>
+
+<main class="wrap">
+  <p class="notice" id="motion" hidden>Ton appareil demande de réduire les animations : la carte les simplifie, comme dans Home Assistant.
+    <label class="ctl" style="display:inline-flex;color:inherit"><input type="checkbox" id="force"> Les afficher quand même</label>
+    (option <code>force_motion</code> de la carte).</p>
+  <p class="status-line">Rejeu de la finale du Top 14 2025, Stade Toulousain – Bordeaux Bègles (39-33 après prolongation), d'après les
+    données ESPN : actions, joueurs et minutes réels. Les boutons ajoutent des actions fictives.</p>
+  <div class="status-line" id="status"></div>
+  <div id="direct" class="screen"></div>
+  <div class="demo-grid" id="grid"><div id="colA"></div><div id="colB"></div><div id="colC"></div></div>
+  <div class="log">
+    <h2>Événements Home Assistant</h2>
+    <p><code>rugby_live_event_raw</code> part dès que l'intégration voit l'action ; <code>rugby_live_event</code> après le retard réglé :
+      c'est lui qu'on utilise dans les automatisations (lumières, annonces…). Monte le retard pour voir l'écart.</p>
+    <ol id="log"></ol>
+  </div>
+</main>
+
+<script type="module">
+import { Sim, clockLabel, mount, run } from './sim.js';
+
+const $ = (id) => document.getElementById(id);
+const shot = new URLSearchParams(location.search).get('shot');
+await customElements.whenDefined('rugby-live-direct-card');
+
+const log = $('log');
+const sim = new Sim({
+  onEvent(kind, e, score) {
+    const data = { type: e.type === 'revoked' ? e.revokedType : e.type, team_name: sim.teamOf(e)?.name ?? null,
+      player: e.player ?? null, minute: e.minute };
+    if (score) Object.assign(data, { score_home: score.home, score_away: score.away });
+    const name = kind === 'rugby_live_event' && e.type === 'revoked' ? 'rugby_live_event_revoked' : kind;
+    const li = document.createElement('li');
+    li.className = kind === 'rugby_live_event' ? 'vis' : 'raw';
+    li.textContent = `${new Date().toLocaleTimeString('fr-FR')}  ${name}  ${JSON.stringify(data)}`;
+    log.prepend(li);
+    while (log.children.length > 60) log.lastChild.remove();
+  },
+});
+
+// No Top 14 bonus in a final.
+const directConfig = { force_motion: !!shot, bonus: false };
+const direct = mount($('direct'), 'rugby-live-direct-card', directConfig);
+const cards = [
+  direct,
+  mount($('colA'), 'rugby-live-scoreboard-card'),
+  mount($('colA'), 'rugby-live-multiplex-card'),
+  mount($('colB'), 'rugby-live-timeline-card', { limit: 8 }),
+  mount($('colC'), 'rugby-live-fixtures-card', { count_upcoming: shot ? 3 : 4, count_results: shot ? 2 : 3 }),
+];
+
+// Screenshots (?shot=score|try|yellow|cards): a frozen instant of the match.
+const SHOTS = { score: [109.6, 'direct'], try: [49.6, 'direct', 'try', 2600], yellow: [59.6, 'direct', 'yellow_card', 3200] };
+if (shot && SHOTS[shot]) {
+  const [clock, target, anim, age] = SHOTS[shot];
+  document.body.classList.add('shot');
+  $(target).classList.add('shot-target');
+  sim.duration = 15;
+  sim.seek(clock);
+  if (anim) sim.anim = { ev: sim.raw.filter((e) => e.type === anim).pop(), start: Date.now() - age };
+  const h = sim.hass();
+  for (const c of cards) c.hass = h;
+  // Wait for the logos (inside the cards' shadow roots), then freeze the animations.
+  const imgs = (root) => [...root.querySelectorAll('*')].flatMap((el) =>
+    [...(el.tagName === 'IMG' ? [el] : []), ...(el.shadowRoot ? imgs(el.shadowRoot) : [])]);
+  for (let i = 0; i < 30 && imgs(document).some((img) => !img.complete); i++) await new Promise((r) => setTimeout(r, 100));
+  await new Promise((r) => setTimeout(r, 300));
+  for (const a of document.getAnimations()) a.pause();
+  window.shotReady = true;
+} else {
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  $('motion').hidden = !reduced.matches;
+  $('force').onchange = (e) => direct.setConfig({ ...directConfig, force_motion: e.target.checked });
+
+  const status = $('status');
+  const part = (label, value, cls = '') => {
+    const s = document.createElement('span');
+    const b = document.createElement('b');
+    b.textContent = value;
+    b.className = cls;
+    s.append(`${label} : `, b);
+    return s;
+  };
+  run(sim, cards, () => {
+    const pending = sim.pending();
+    status.replaceChildren(
+      part("Terrain (vu par l'intégration)", clockLabel(sim.clock)),
+      part('Ton écran', clockLabel(sim.shownClock())),
+      part('Actions en attente du retard', String(pending), pending ? 'pend' : ''),
+    );
+  });
+
+  $('play').onclick = () => {
+    sim.paused = !sim.paused;
+    $('play').textContent = sim.paused ? 'Reprendre' : 'Pause';
+  };
+  $('reset').onclick = () => {
+    sim.reset();
+    log.replaceChildren();
+    $('play').textContent = 'Pause';
+  };
+  $('speed').onchange = (e) => (sim.speed = +e.target.value);
+  $('delay').oninput = (e) => { sim.delay = +e.target.value; $('delayOut').value = `${sim.delay} s`; };
+  $('dur').oninput = (e) => { sim.duration = +e.target.value; $('durOut').value = `${sim.duration} s`; };
+  $('bg').onchange = (e) => (sim.background = e.target.value);
+  for (const b of document.querySelectorAll('[data-a]')) {
+    b.onclick = () => sim.inject(b.dataset.a, document.querySelector('[name=team]:checked').value);
+  }
+}
+</script>
+</body>
+</html>

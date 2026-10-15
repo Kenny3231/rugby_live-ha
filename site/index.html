@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rugby Live pour Home Assistant</title>
+<meta name="description" content="Installer et configurer Rugby Live dans Home Assistant : score, essais, cartons et temps de jeu du Top 14, de la Champions Cup et de la Challenge Cup en quasi direct, avec animations et retard anti-spoil.">
+<meta property="og:title" content="Rugby Live pour Home Assistant">
+<meta property="og:description" content="Le Top 14 et les coupes d'Europe en direct dans Home Assistant : guide d'installation, captures et démo.">
+<meta property="og:image" content="https://rugby-live-ha.pages.dev/img/direct-try.webp">
+<meta property="og:url" content="https://rugby-live-ha.pages.dev/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="site.css">
+<script type="module" src="rugby-live-cards.js"></script>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="./"><svg viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="16" rx="14" ry="8.5" transform="rotate(-40 16 16)" fill="#e11d2e"/><path d="M11 21 21 11M13 16l3 3M15.5 13.5l3 3" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>Rugby Live</a>
+  <nav class="nav">
+    <a class="opt" href="#installation">Installation</a>
+    <a class="opt" href="#tableau">Tableau de bord</a>
+    <a class="opt" href="#retard">Retard</a>
+    <a class="opt" href="#automatisations">Automatisations</a>
+    <a href="https://github.com/Kenny3231/rugby_live-ha">GitHub</a>
+    <a class="btn primary" href="demo.html">Démo</a>
+  </nav>
+</div></header>
+
+<main>
+<div class="hero"><div class="wrap">
+  <div>
+    <p class="kicker">Intégration Home Assistant · HACS</p>
+    <h1>Le rugby <em>en direct</em> dans Home Assistant</h1>
+    <p class="lead">Score, essais, transformations, pénalités, drops, cartons et temps de jeu du <b>Top 14</b>, de la <b>Champions Cup</b>
+      et de la <b>Challenge Cup</b>. Une animation plein écran à chaque action, et un retard réglable pour ne jamais voir l'essai avant ta TV.</p>
+    <div class="ctas">
+      <a class="btn primary" href="#installation">Guide d'installation</a>
+      <a class="btn" href="demo.html">Lancer la démo</a>
+    </div>
+    <ul class="facts">
+      <li>Gratuit, sans compte ni clé</li>
+      <li>Configuration 100 % à la souris</li>
+      <li>5 cartes Lovelace incluses</li>
+    </ul>
+  </div>
+  <figure style="margin:0">
+    <div class="screen" id="hero"></div>
+    <figcaption class="screen-cap">La vraie carte « Direct » rejoue la finale du Top 14 2025, Stade Toulousain – Bordeaux Bègles, en accéléré.</figcaption>
+  </figure>
+</div></div>
+
+<section id="fonctionnement"><div class="wrap">
+  <p class="kicker">Fonctionnement</p>
+  <h2>De l'action sur le terrain à ton salon</h2>
+  <div class="steps">
+    <div class="step"><h3>Lecture des données</h3>
+      <p>Pendant un match, toutes les 10 s, l'intégration lit le tableau d'affichage et le fil des actions d'ESPN. Hors match, elle ralentit
+        toute seule.</p></div>
+    <div class="step"><h3>Nettoyage</h3>
+      <p>ESPN corrige souvent ses actions. Chacune est suivie par son équipe et son joueur : jamais de doublon, et un essai refusé est
+        signalé comme annulé.</p></div>
+    <div class="step"><h3>Retard anti-spoil</h3>
+      <p>Les actions attendent dans une file le retard que tu as réglé : score, minute et animations restent calés sur ton écran.</p></div>
+    <div class="step"><h3>Home Assistant</h3>
+      <p>Des entités stables, des événements pour tes automatisations, et des cartes avec animations.</p></div>
+  </div>
+  <p class="note">Le « direct » a ses limites : les données arrivent <b>40 à 65 s après l'action</b> sur le terrain (mesuré en match réel).
+    Elles sont saisies par des opérateurs, aucune source publique ne fait mieux.</p>
+</div></section>
+
+<section id="installation"><div class="wrap">
+  <p class="kicker">Installation</p>
+  <h2>Installer et configurer l'intégration</h2>
+  <p class="intro">Il faut Home Assistant 2026.10 ou plus récent, et HACS. Les captures viennent d'un Home Assistant de test tout neuf,
+    en français.</p>
+  <div class="guide">
+    <div class="g-step">
+      <div><p class="g-num">Étape 1</p><h3>Ajouter le dépôt dans HACS</h3>
+        <ol class="plain">
+          <li>Ouvre <b>HACS</b>, menu <b>⋮</b> en haut à droite, <b>Dépôts personnalisés</b>.</li>
+          <li>Colle l'adresse ci-contre, choisis le type <b>Intégration</b>, puis <b>Ajouter</b>.</li>
+          <li>Cherche <b>Rugby Live</b> dans HACS, <b>Télécharger</b>.</li>
+          <li><b>Redémarre</b> Home Assistant.</li>
+        </ol></div>
+      <div><pre><code>https://github.com/Kenny3231/rugby_live-ha</code></pre>
+        <p class="muted">Pas de compte, pas de clé d'API : la source est publique. Les cartes sont livrées avec l'intégration, il n'y a rien
+          d'autre à installer.</p></div>
+    </div>
+    <div class="g-step">
+      <div><p class="g-num">Étape 2</p><h3>Ajouter l'intégration</h3>
+        <p><b>Paramètres → Appareils et services → Ajouter une intégration</b>, puis tape « rugby ».</p></div>
+      <a href="img/setup-1-search.png"><img src="img/setup-1-search.png" width="1280" height="800" loading="lazy"
+        alt="Fenêtre « Sélectionner la marque » de Home Assistant, recherche « rugby », résultat Rugby Live"></a>
+    </div>
+    <div class="g-step">
+      <div><p class="g-num">Étape 3</p><h3>Choisir les compétitions</h3>
+        <p>Top 14, Champions Cup, Challenge Cup : coche celles que tu veux suivre. Chacune aura son appareil avec tous les matchs du jour,
+          le prochain match et un calendrier.</p></div>
+      <a href="img/setup-2-competitions.png"><img src="img/setup-2-competitions.png" width="1280" height="800" loading="lazy"
+        alt="Étape Rugby Live « Choisis les compétitions à suivre » avec Top 14, Champions Cup et Challenge Cup cochés"></a>
+    </div>
+    <div class="g-step">
+      <div><p class="g-num">Étape 4</p><h3>Tes équipes favorites</h3>
+        <p>Facultatif. Chaque équipe choisie a son propre appareil : statut du match, score, minute, dernier événement, carton jaune en cours,
+          prochain match. La liste est celle des compétitions cochées.</p></div>
+      <a href="img/setup-3-favorites.png"><img src="img/setup-3-favorites.png" width="1280" height="800" loading="lazy"
+        alt="Étape « Équipes favorites » avec Stade Toulousain sélectionné"></a>
+    </div>
+    <div class="g-step">
+      <div><p class="g-num">Étape 5</p><h3>Les appareils créés</h3>
+        <p>Home Assistant propose de ranger les appareils dans des pièces : inutile ici, <b>Ignorer et terminer</b>.</p>
+        <ul class="plain-ul">
+          <li><b>Rugby Live</b> : retard, bouton Calibrer, choix du match suivi, état de l'API.</li>
+          <li><b>Match suivi</b> : le match choisi (automatique : celui de ton équipe, sinon un match en direct), avec l'entité Animation.</li>
+          <li><b>Une par équipe favorite</b> et <b>une par compétition</b>.</li>
+        </ul></div>
+      <a href="img/setup-5-integration.png"><img src="img/setup-5-integration.png" width="1280" height="800" loading="lazy"
+        alt="Page de l'intégration Rugby Live : 6 services et 29 entités (Challenge Cup, Champions Cup, Match suivi, Rugby Live, Stade Toulousain, Top 14)"></a>
+    </div>
+    <div class="g-step">
+      <div><p class="g-num">Étape 6</p><h3>Les options</h3>
+        <p>Roue dentée de l'intégration. Les valeurs par défaut conviennent ; ce qui peut servir :</p>
+        <ul class="plain-ul">
+          <li><b>Compétitions et équipes favorites</b>, modifiables à tout moment.</li>
+          <li><b>Interrogation</b> pendant un match (10 s minimum), avant le coup d'envoi, sans match.</li>
+          <li><b>Durée d'une animation</b> (20 s par défaut) et <b>fond des animations</b> pour chaque type d'action : rayons, ondes,
+            projecteurs, confettis.</li>
+          <li>Durée du carton jaune, remplacements publiés comme événements, calendrier des diffusions TV.</li>
+        </ul></div>
+      <a href="img/setup-6-options.png" class="tall"><img src="img/setup-6-options.png" width="580" height="1420" loading="lazy"
+        alt="Fenêtre « Options de Rugby Live » : compétitions, équipes favorites, intervalles d'interrogation, durée du carton jaune, durée d'une animation, fonds des animations"></a>
+    </div>
+  </div>
+</div></section>
+
+<section id="tableau"><div class="wrap">
+  <p class="kicker">Tableau de bord</p>
+  <h2>Mettre les cartes en place</h2>
+  <p class="intro">Le plus rapide : partir du tableau de bord d'exemple, puis l'adapter avec l'éditeur visuel.</p>
+  <div class="guide">
+    <div class="g-step">
+      <div><p class="g-num">Étape 1</p><h3>Créer le tableau de bord</h3>
+        <ol class="plain">
+          <li><b>Paramètres → Tableaux de bord → Ajouter un tableau de bord</b>, à partir de zéro, nomme-le « Rugby ».</li>
+          <li>Ouvre-le, <b>crayon</b> (modifier), menu <b>⋮</b>, <b>Éditeur de configuration brute</b>.</li>
+          <li>Colle le contenu de <a href="https://github.com/Kenny3231/rugby_live-ha/blob/main/examples/dashboard-cards.yaml">examples/dashboard-cards.yaml</a>
+            et enregistre.</li>
+        </ol>
+        <p class="muted">Les cartes trouvent toutes seules les entités de l'intégration. Seules les tuiles du retard citent des identifiants
+          (en français) : à ajuster si ton Home Assistant est dans une autre langue.</p></div>
+      <a href="img/dash-1-view.png"><img src="img/dash-1-view.png" width="1440" height="1000" loading="lazy"
+        alt="Tableau de bord Rugby : équipe favorite, match suivi, tous les matchs, calendrier et réglage du retard"></a>
+    </div>
+    <div class="g-step">
+      <div><p class="g-num">Étape 2</p><h3>Ajouter une carte</h3>
+        <p>En mode modification, <b>+</b> dans une section, onglet <b>Par carte</b>, tape « rugby live ». Les 5 cartes sont là :</p>
+        <ul class="plain-ul">
+          <li><b>Direct</b> : score plein écran, bandeau des autres matchs, animations.</li>
+          <li><b>Score</b> : le match de ton équipe, compteurs, cartons.</li>
+          <li><b>Fil du match</b>, <b>Multiplex</b> (tous les matchs du jour) et <b>Calendrier</b>.</li>
+        </ul></div>
+      <a href="img/dash-2-add-card.png"><img src="img/dash-2-add-card.png" width="1440" height="1000" loading="lazy"
+        alt="Fenêtre « Ajouter au tableau de bord », onglet Par carte : Rugby Live – Calendrier, Direct, Fil du match, Multiplex, Score"></a>
+    </div>
+    <div class="g-step">
+      <div><p class="g-num">Étape 3</p><h3>Régler la carte</h3>
+        <p>Tout se règle dans l'éditeur visuel, avec l'aperçu à droite. Laisse les appareils vides : la carte prend le Match suivi et ta
+          première équipe favorite.</p>
+        <p class="muted">« Animer même si l'appareil demande moins d'animations » : utile si Windows ou ta tablette a les effets d'animation
+          désactivés, sinon les animations sont simplifiées.</p></div>
+      <a href="img/dash-3-editor.png"><img src="img/dash-3-editor.png" width="1440" height="1000" loading="lazy"
+        alt="Éditeur de la carte Rugby Live – Direct : appareils, bandeau, filigrane, détail des points, bonus Top 14, animations, et aperçu"></a>
+    </div>
+    <div class="g-step">
+      <div><p class="g-num">Étape 4</p><h3>Plein écran pour la TV ou la tablette</h3>
+        <p>Le tableau de bord d'exemple a une seconde vue « Direct » de type <b>Panneau</b> : la carte prend tout l'écran. Hors match, elle
+          annonce le prochain match de ton équipe.</p>
+        <pre><code>- title: Direct
+  type: panel
+  cards:
+    - type: custom:rugby-live-direct-card</code></pre></div>
+      <a href="img/dash-4-direct.webp"><img src="img/dash-4-direct.webp" width="1280" height="800" loading="lazy"
+        alt="Vue Direct en plein écran : prochain match Stade Toulousain contre Perpignan, samedi 24 octobre à 16h35"></a>
+    </div>
+  </div>
+</div></section>
+
+<section id="match"><div class="wrap">
+  <p class="kicker">Pendant un match</p>
+  <h2>Ce que tu verras le jour du match</h2>
+  <p class="intro">Captures de la démo, qui rejoue la finale du Top 14 2025, Stade Toulousain – Bordeaux Bègles, avec les vraies
+    cartes : vrais joueurs, logos officiels et photos détourées de la LNR, comme dans Home Assistant.</p>
+  <div class="gallery">
+    <figure class="wide"><img src="img/direct-score.webp" width="1280" height="720" loading="lazy"
+      alt="Carte Direct : Stade Toulousain 39 - 33 Bordeaux Begles à la 100e minute, en prolongation, détail des points">
+      <figcaption><b>Tableau de score</b>Aux couleurs des clubs, chrono (prolongations comprises), détail des points, dernière action et
+        bandeau des autres matchs. En saison régulière, le bonus du Top 14 s'affiche aussi.</figcaption></figure>
+    <figure><img src="img/direct-try.webp" width="1280" height="720" loading="lazy" alt="Animation d'essai de Jack Willis, Stade Toulousain, 45e minute">
+      <figcaption><b>Essai</b>Nom du joueur, logo, minute, avec le fond choisi dans les options.</figcaption></figure>
+    <figure><img src="img/direct-yellow.webp" width="1280" height="720" loading="lazy" alt="Animation du carton jaune de Pierre Bochaton, Bordeaux Begles, 55e minute">
+      <figcaption><b>Carton</b>Coup de sifflet, puis le carton s'abat sur le joueur.</figcaption></figure>
+  </div>
+  <p style="margin-top:28px"><a class="btn primary" href="demo.html">Voir le match bouger dans la démo</a></p>
+</div></section>
+
+<section id="retard"><div class="wrap">
+  <p class="kicker">Retard anti-spoil</p>
+  <h2>Caler les données sur ta TV</h2>
+  <div class="g-step">
+    <div>
+      <p class="muted">Une box, myCanal ou un autre flux a son propre retard. Le retard de l'intégration retient les données pour qu'elles
+        arrivent en même temps que l'image.</p>
+      <ol class="plain">
+        <li>Pendant un match, laisse le retard à 0.</li>
+        <li>Quand une action affichée par Home Assistant <b>apparaît à ta TV</b>, appuie sur <b>Calibrer le retard</b> (appareil Rugby Live) :
+          le retard devient le temps écoulé depuis que l'intégration a vu cette action.</li>
+        <li>Ajuste au besoin avec l'entité <b>Retard</b> ou le service <code>rugby_live.set_delay</code>.</li>
+      </ol>
+      <p class="muted">Le retard ne peut que retenir les données, pas les avancer : si ta TV montre l'action avant que les données arrivent,
+        le bon réglage est 0.</p>
+    </div>
+    <a href="img/setup-7-delay.png"><img src="img/setup-7-delay.png" width="1280" height="800" loading="lazy"
+      alt="Appareil Rugby Live : bouton Calibrer le retard, choix du match suivi, retard en secondes, état de l'API"></a>
+  </div>
+</div></section>
+
+<section id="automatisations"><div class="wrap">
+  <p class="kicker">Automatisations</p>
+  <h2>Déclencher ce que tu veux à chaque essai</h2>
+  <div class="g-step">
+    <div>
+      <p>Chaque action envoie l'événement <code>rugby_live_event</code>, après le retard réglé. Dans une automatisation : déclencheur
+        <b>Événement manuel reçu</b>, type <code>rugby_live_event</code>, et filtre dans les données.</p>
+      <div class="table"><table>
+        <thead><tr><th>Événement</th><th>Quand</th></tr></thead>
+        <tbody>
+          <tr><td><code>rugby_live_event</code></td><td>Après le retard : ce que tu vois.</td></tr>
+          <tr><td><code>rugby_live_event_raw</code></td><td>Dès que l'intégration voit l'action.</td></tr>
+          <tr><td><code>rugby_live_event_revoked</code></td><td>Une action publiée a été annulée.</td></tr>
+        </tbody>
+      </table></div>
+      <p class="muted">Données : <code>type</code> (<code>try</code>, <code>conversion</code>, <code>penalty_goal</code>, <code>drop_goal</code>,
+        <code>yellow_card</code>, <code>red_card</code>, <code>kickoff</code>, <code>half_time</code>, <code>full_time</code>…),
+        <code>team_id</code>, <code>team_name</code>, <code>player</code>, <code>minute</code>, <code>score_home</code>, <code>score_away</code>,
+        <code>favorite</code>.</p>
+    </div>
+    <div>
+      <a href="img/auto-1-try.png"><img src="img/auto-1-try.png" width="1280" height="800" loading="lazy"
+        alt="Éditeur d'automatisation : déclencheur rugby_live_event avec type try et team_id 25922, action notification"></a>
+      <pre style="margin-top:16px"><code># Lumière rouge qui clignote à chaque essai du Stade Toulousain
+triggers:
+  - trigger: event
+    event_type: rugby_live_event
+    event_data: { type: try, team_id: "25922" }
+actions:
+  - action: light.turn_on
+    target: { entity_id: light.salon }
+    data: { rgb_color: [220, 0, 0], flash: short }</code></pre>
+    </div>
+  </div>
+</div></section>
+
+<section id="limites"><div class="wrap">
+  <p class="kicker">Bon à savoir</p>
+  <h2>Les limites, honnêtement</h2>
+  <div class="steps no-num">
+    <div class="step"><h3>Source non officielle</h3><p>L'API publique d'ESPN n'est pas documentée. Usage personnel, requêtes modérées (au
+      plus une par seconde). Elle peut changer sans préavis.</p></div>
+    <div class="step"><h3>Quasi direct</h3><p>40 à 65 s de décalage avec le terrain, comme toutes les sources publiques gratuites.</p></div>
+    <div class="step"><h3>Trois compétitions</h3><p>Top 14, Champions Cup et Challenge Cup. Une autre ligue ESPN peut s'ajouter par son
+      identifiant, sans garantie.</p></div>
+    <div class="step"><h3>Photos des joueurs</h3><p>Pour le Top 14 seulement (base publique de la LNR). Ailleurs, l'animation affiche le logo du club.</p></div>
+  </div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <span>© 2026 Kenny3231 · Licence MIT · <a href="https://github.com/Kenny3231/rugby_live-ha">GitHub</a></span>
+  <span>Projet personnel, non affilié à la LNR, à l'EPCR ni à ESPN. Logos : © leurs clubs.</span>
+</div></footer>
+
+<script type="module">
+import { Sim, mount, run } from './sim.js';
+
+await customElements.whenDefined('rugby-live-direct-card');
+const card = mount(document.getElementById('hero'), 'rugby-live-direct-card', { bonus: false });
+run(new Sim({ loop: true, duration: 6 }), [card]);
+</script>
+</body>
+</html>

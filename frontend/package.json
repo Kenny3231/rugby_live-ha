@@ -5,7 +5,8 @@
   "description": "Lovelace cards of the rugby_live integration (bundled into custom_components/rugby_live/frontend).",
   "scripts": {
     "build": "vite build",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "deploy:site": "vite build && node -e \"require('fs').copyFileSync('../custom_components/rugby_live/frontend/rugby-live-cards.js', '../site/rugby-live-cards.js')\" && npx --yes wrangler@4.150.0 pages deploy ../site --project-name rugby-live-ha --branch main"
   },
   "dependencies": {
     "lit": "3.3.3"

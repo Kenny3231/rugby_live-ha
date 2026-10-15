@@ -24,3 +24,7 @@ _local-tracking/
 .coverage
 htmlcov/
 .claude/
+
+# Website: the card bundle is copied in at deploy time (npm run deploy:site)
+site/rugby-live-cards.js
+.wrangler/
