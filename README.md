@@ -2,6 +2,8 @@
 
 Scores et événements **en quasi direct** du **Top 14**, de la **Champions Cup** et de la **Challenge Cup** dans Home Assistant : score, statut, minute de jeu, essais, transformations, pénalités, drops, cartons, remplacements, avec un **retard réglable** pour ne pas te faire spoiler avant ta TV.
 
+**Site, guide d'installation illustré et démo en direct : https://rugby-live-ha.pages.dev**
+
 > ⚠️ Les données viennent de l'API **non officielle et non documentée** d'ESPN (usage personnel, requêtes modérées). Elle peut changer sans préavis.
 
 ## Ce qu'il faut savoir sur le « direct »
