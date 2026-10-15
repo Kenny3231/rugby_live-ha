@@ -58,8 +58,9 @@ export class RugbyLiveDirectCard extends LitElement {
     this._config = config;
   }
 
+  // Explicit defaults: the visual editor shows a missing boolean as off.
   static getStubConfig() {
-    return {};
+    return { ...DEFAULTS };
   }
 
   static getConfigForm() {

@@ -866,7 +866,7 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 		this._config = e;
 	}
 	static getStubConfig() {
-		return {};
+		return { ...Fe };
 	}
 	static getConfigForm() {
 		let e = (e) => ({
@@ -1225,7 +1225,7 @@ var Ge, Ke = class extends U {
 		this._config = e;
 	}
 	static getStubConfig() {
-		return {};
+		return { show_finished: !0 };
 	}
 	static getConfigForm() {
 		let e = {
@@ -1328,7 +1328,10 @@ var qe, Je = [
 		this._config = e;
 	}
 	static getStubConfig() {
-		return {};
+		return {
+			show_logos: !0,
+			show_counters: !0
+		};
 	}
 	static getConfigForm() {
 		let e = {

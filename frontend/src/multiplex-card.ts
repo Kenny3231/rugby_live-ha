@@ -20,8 +20,9 @@ export class RugbyLiveMultiplexCard extends LitElement {
     this._config = config;
   }
 
+  // Explicit defaults: the visual editor shows a missing boolean as off.
   static getStubConfig() {
-    return {};
+    return { show_finished: true };
   }
 
   static getConfigForm() {

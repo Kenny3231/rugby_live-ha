@@ -27,8 +27,9 @@ export class RugbyLiveScoreboardCard extends LitElement {
     this._config = config;
   }
 
+  // Explicit defaults: the visual editor shows a missing boolean as off.
   static getStubConfig() {
-    return {};
+    return { show_logos: true, show_counters: true };
   }
 
   static getConfigForm() {
