@@ -39,13 +39,13 @@ define('ha-icon', class extends HTMLElement {
 });
 
 // ---- Real data: Top 14 final 2025, recorded from ESPN (event 599792, Stade de France) ----
-// Names and colours as ESPN sends them, official LNR logos (as the integration shows them).
+// Names as ESPN sends them; club colours (api.CLUB_COLORS) and LNR logos, as the integration shows them.
 const LNR = (slug) => `https://cdn.lnr.fr/club/${slug}/photo/logo.006973c3fdaf23345d4c26b914dcca87e8ef842a`;
 const team = (id, name, color, slug) => ({ id, name, color, logo: LNR(slug) });
 const TEAMS = Object.fromEntries([
-  team('25922', 'Stade Toulousain', '#000000', 'toulouse'), team('143737', 'Bordeaux Begles', '#000099', 'bordeaux-begles'),
-  team('25912', 'Bayonne', '#6699CC', 'bayonne'), team('25917', 'Clermont Auvergne', '#FFCC00', 'clermont'),
-  team('25986', 'Toulon', '#CC0000', 'toulon'), team('25916', 'Castres Olympique', '#000066', 'castres'),
+  team('25922', 'Stade Toulousain', '#C8102E', 'toulouse'), team('143737', 'Bordeaux Begles', '#7A1E3D', 'bordeaux-begles'),
+  team('25912', 'Bayonne', '#2B8FD0', 'bayonne'), team('25917', 'Clermont Auvergne', '#FFC20E', 'clermont'),
+  team('25986', 'Toulon', '#E2001A', 'toulon'), team('25916', 'Castres Olympique', '#0047AB', 'castres'),
 ].map((t) => [t.id, t]));
 // The replayed match: Stade Toulousain 39 - 33 Bordeaux Begles after extra time.
 // [period, minute, type, side, player]; ESPN puts extra time in period 0.
