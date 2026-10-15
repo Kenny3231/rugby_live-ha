@@ -115,7 +115,7 @@ export class RugbyLiveScoreboardCard extends LitElement {
     return html`<div class="rl-row">
       <div class="rl-team">${logos ? logo(hl, hn, hc) : nothing}<span>${hn || ''}</span></div>
       <div class="rl-score">${mid}</div>
-      <div class="rl-team rl-away"><span>${an || ''}</span>${logos ? logo(al, an, ac) : nothing}</div>
+      <div class="rl-team">${logos ? logo(al, an, ac) : nothing}<span>${an || ''}</span></div>
     </div>`;
   }
 
@@ -149,9 +149,9 @@ export class RugbyLiveScoreboardCard extends LitElement {
 
   static styles = [baseStyles, css`
     .rl-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; }
-    .rl-team { display: flex; align-items: center; gap: 10px; min-width: 0; font-weight: 700; font-size: 15px; }
-    .rl-team span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .rl-away { justify-content: flex-end; text-align: right; }
+    /* Logo above the name, the name wraps: never cut, even in a narrow column (tablet). */
+    .rl-team { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0;
+      font-weight: 700; font-size: 15px; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
     .rl-score { font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1; }
     .rl-dash { color: var(--secondary-text-color); margin: 0 6px; }
     .rl-vs { color: var(--secondary-text-color); font-size: 20px; }
@@ -161,7 +161,7 @@ export class RugbyLiveScoreboardCard extends LitElement {
     .rl-cnt { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; margin-top: 10px;
       font-size: 12px; color: var(--secondary-text-color); }
     .rl-cnt > div { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
-    .rl-cnt > div:last-child { justify-content: flex-end; }
+    .rl-cnt > div { justify-content: center; }
     .rl-cnt b { color: var(--primary-text-color); }
     .rl-cards { display: inline-flex; gap: 3px; }
     .rl-yc, .rl-rc { display: inline-block; width: 9px; height: 13px; border-radius: 2px; background: #eab308; vertical-align: -2px; margin-right: 4px; }

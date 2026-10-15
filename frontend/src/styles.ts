@@ -8,7 +8,10 @@ ha-card{overflow:hidden;border-radius:var(--ha-card-border-radius,12px);backgrou
 /* The box is the size container: everything inside is sized in cqh/cqw, so the card
    looks the same full screen (panel view) and scaled down in a section (16:9). */
 .rl-box{container-type:size;width:100%;aspect-ratio:16/9}
-.rl-box.rl-panel{aspect-ratio:auto;height:calc(100vh - var(--header-height,56px))}
+/* Full screen: the 16:9 board is letterboxed (tablet, 4:3 or portrait screen), so names,
+   logos and scores keep the proportions they have on a TV instead of being squeezed. */
+.rl-panelcard{min-height:calc(100vh - var(--header-height,56px));display:flex;align-items:center;justify-content:center}
+.rl-box.rl-panel{width:min(100%,calc((100vh - var(--header-height,56px)) * 16 / 9))}
 .rl-wrap{position:relative;height:100%;overflow:hidden;font-family:var(--ha-font-family-body,system-ui,sans-serif);
   background:radial-gradient(circle at 50% 30%,#1e293b,#020617);color:#fff;display:flex;flex-direction:column}
 .rl-tick{height:5cqh;min-height:34px;background:#0b1220;border-bottom:3px solid #dc2626;overflow:hidden;
@@ -44,6 +47,7 @@ ha-card{overflow:hidden;border-radius:var(--ha-card-border-radius,12px);backgrou
 .rl-sba::before{background:linear-gradient(270deg,transparent,var(--ac) 35%);clip-path:polygon(0 0,95% 0,100% 100%,0 100%)}
 .rl-sbt span{flex:1;min-width:0;overflow:hidden;line-height:1.1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;text-shadow:0 3px 0 rgba(0,0,0,.5)}
 .rl-sbh span{text-align:right}
+.rl-sbt.rl-dark span{color:#0b1220;text-shadow:none}
 .rl-sbt img{flex:none;height:23cqh;width:23cqh;object-fit:contain;filter:drop-shadow(0 1cqh 2cqh rgba(0,0,0,.6))}
 .rl-sbt .rl-init{flex:none;height:18cqh;width:18cqh;font-size:6cqh}
 .rl-sbs{height:100%;min-width:15cqh;padding:0 2cqh;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:#0b1220;font-size:14cqh;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}

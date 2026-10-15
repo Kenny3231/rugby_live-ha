@@ -2,7 +2,9 @@
 // scores, minute, last event; favourite teams in bold.
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import type { Hass } from './hass';
-import { COMP, LIVE, RugbyEntities, baseStyles, deviceSelector, hhmm, logo, watchedChanged, type Attrs } from './common';
+import {
+  COMP, LIVE, RugbyEntities, baseStyles, deviceSelector, hhmm, teamLine, teamLineStyles, watchedChanged, type Attrs,
+} from './common';
 
 interface MultiplexConfig {
   type: string;
@@ -81,31 +83,21 @@ export class RugbyLiveMultiplexCard extends LitElement {
       : live ? m.minute || ''
       : m.status === 'finished' ? 'Fin'
       : m.status === 'scheduled' ? hhmm(new Date(m.kickoff)) : '';
-    const score = m.status === 'scheduled' ? html`<span class="rl-muted">-</span>` : html`${m.home_score} - ${m.away_score}`;
     return html`<div class="rl-match ${live ? 'rl-on' : ''}">
       <div class="rl-when ${live ? 'rl-red' : ''}">${when}</div>
-      <div class="rl-t ${fav.has(m.home_id) ? 'rl-fav' : ''}">${logo(m.home_logo, m.home_name, m.home_color)}<span>${m.home_name}</span></div>
-      <div class="rl-sc ${m.provisional ? 'rl-prov' : ''}">${score}</div>
-      <div class="rl-t rl-r ${fav.has(m.away_id) ? 'rl-fav' : ''}"><span>${m.away_name}</span>${logo(m.away_logo, m.away_name, m.away_color)}</div>
+      <div class="rl-ts">${teamLine(m, 'home', fav)}${teamLine(m, 'away', fav)}</div>
       ${live && m.last_event ? html`<div class="rl-ev">${m.last_event}</div>` : nothing}
       ${m.status === 'scheduled' && m.channel ? html`<div class="rl-ev">📺 ${m.channel}</div>` : nothing}
     </div>`;
   }
 
-  static styles = [baseStyles, css`
+  static styles = [baseStyles, teamLineStyles, css`
     .rl-group + .rl-group { margin-top: 16px; }
-    .rl-match { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto minmax(0, 1fr); align-items: center;
+    .rl-match { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center;
       gap: 4px 10px; padding: 8px 0; border-top: 1px solid var(--divider-color); }
     .rl-when { font-size: 12px; font-weight: 700; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
     .rl-red { color: #dc2626; }
-    .rl-t { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; }
-    .rl-t span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .rl-r { justify-content: flex-end; text-align: right; }
-    .rl-t .rl-logo { width: 26px; height: 26px; }
-    .rl-t .rl-init { font-size: 9px; }
-    .rl-sc { font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: center; min-width: 52px; }
-    .rl-prov { color: var(--warning-color, #f59e0b); }
-    .rl-ev { grid-column: 2 / -1; font-size: 12px; color: var(--secondary-text-color); text-align: center; }
+    .rl-ev { grid-column: 2; font-size: 12px; color: var(--secondary-text-color); }
     .rl-compact .rl-match { padding: 5px 0; }
     .rl-compact .rl-t .rl-logo { width: 20px; height: 20px; }
   `];

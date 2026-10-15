@@ -3,7 +3,7 @@
 // next match sensors.
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import type { Hass } from './hass';
-import { COMP, LIVE, RugbyEntities, baseStyles, deviceSelector, hhmm, logo, longDate, watchedChanged, type Attrs } from './common';
+import { COMP, LIVE, RugbyEntities, baseStyles, deviceSelector, hhmm, longDate, teamLine, teamLineStyles, watchedChanged, type Attrs } from './common';
 
 interface FixturesConfig {
   type: string;
@@ -97,11 +97,11 @@ export class RugbyLiveFixturesCard extends LitElement {
       const label = longDate(d);
       const header = label !== day ? html`<div class="rl-day">${label}</div>` : nothing;
       day = label;
-      const mid = m.status === 'scheduled' ? hhmm(d) : `${m.home_score} - ${m.away_score}`;
+      const live = LIVE.includes(m.status);
+      const when = m.status === 'scheduled' ? hhmm(d) : m.status === 'half_time' ? 'MT' : live ? m.minute || 'LIVE' : 'Fin';
       return html`${header}<div class="rl-m">
-        <div class="rl-t ${fav.has(m.home_id) ? 'rl-fav' : ''}">${logo(m.home_logo, m.home_name, m.home_color)}<span>${m.home_name}</span></div>
-        <div class="rl-mid ${m.status === 'scheduled' ? 'rl-time' : ''} ${LIVE.includes(m.status) ? 'rl-red' : ''}">${mid}</div>
-        <div class="rl-t rl-r ${fav.has(m.away_id) ? 'rl-fav' : ''}"><span>${m.away_name}</span>${logo(m.away_logo, m.away_name, m.away_color)}</div>
+        <div class="rl-mid ${live ? 'rl-red' : ''}">${when}</div>
+        <div class="rl-ts">${teamLine(m, 'home', fav)}${teamLine(m, 'away', fav)}</div>
         ${(showComp && m.competition) || (m.status === 'scheduled' && m.channel)
           ? html`<div class="rl-sub">${[showComp && COMP[m.competition], m.status === 'scheduled' && m.channel && `📺 ${m.channel}`].filter(Boolean).join(' • ')}</div>`
           : nothing}
@@ -109,21 +109,15 @@ export class RugbyLiveFixturesCard extends LitElement {
     });
   }
 
-  static styles = [baseStyles, css`
+  static styles = [baseStyles, teamLineStyles, css`
     .rl-sec { margin: 12px 0 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary-color); }
     .rl-sec:first-of-type { margin-top: 0; }
     .rl-day { margin-top: 6px; font-size: 12px; color: var(--secondary-text-color); }
     .rl-day::first-letter { text-transform: uppercase; }
-    .rl-m { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 2px 10px;
+    .rl-m { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 2px 10px;
       padding: 6px 0; border-bottom: 1px solid var(--divider-color); }
-    .rl-t { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; }
-    .rl-t span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .rl-r { justify-content: flex-end; text-align: right; }
-    .rl-t .rl-logo { width: 24px; height: 24px; }
-    .rl-t .rl-init { font-size: 9px; }
-    .rl-mid { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: center; min-width: 52px; }
-    .rl-time { font-weight: 600; color: var(--secondary-text-color); }
+    .rl-mid { font-size: 12px; font-weight: 700; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
     .rl-red { color: #dc2626; }
-    .rl-sub { grid-column: 1 / -1; text-align: center; font-size: 12px; color: var(--secondary-text-color); }
+    .rl-sub { grid-column: 2; font-size: 12px; color: var(--secondary-text-color); }
   `];
 }

@@ -558,7 +558,10 @@ ha-card{overflow:hidden;border-radius:var(--ha-card-border-radius,12px);backgrou
 /* The box is the size container: everything inside is sized in cqh/cqw, so the card
    looks the same full screen (panel view) and scaled down in a section (16:9). */
 .rl-box{container-type:size;width:100%;aspect-ratio:16/9}
-.rl-box.rl-panel{aspect-ratio:auto;height:calc(100vh - var(--header-height,56px))}
+/* Full screen: the 16:9 board is letterboxed (tablet, 4:3 or portrait screen), so names,
+   logos and scores keep the proportions they have on a TV instead of being squeezed. */
+.rl-panelcard{min-height:calc(100vh - var(--header-height,56px));display:flex;align-items:center;justify-content:center}
+.rl-box.rl-panel{width:min(100%,calc((100vh - var(--header-height,56px)) * 16 / 9))}
 .rl-wrap{position:relative;height:100%;overflow:hidden;font-family:var(--ha-font-family-body,system-ui,sans-serif);
   background:radial-gradient(circle at 50% 30%,#1e293b,#020617);color:#fff;display:flex;flex-direction:column}
 .rl-tick{height:5cqh;min-height:34px;background:#0b1220;border-bottom:3px solid #dc2626;overflow:hidden;
@@ -594,6 +597,7 @@ ha-card{overflow:hidden;border-radius:var(--ha-card-border-radius,12px);backgrou
 .rl-sba::before{background:linear-gradient(270deg,transparent,var(--ac) 35%);clip-path:polygon(0 0,95% 0,100% 100%,0 100%)}
 .rl-sbt span{flex:1;min-width:0;overflow:hidden;line-height:1.1;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;text-shadow:0 3px 0 rgba(0,0,0,.5)}
 .rl-sbh span{text-align:right}
+.rl-sbt.rl-dark span{color:#0b1220;text-shadow:none}
 .rl-sbt img{flex:none;height:23cqh;width:23cqh;object-fit:contain;filter:drop-shadow(0 1cqh 2cqh rgba(0,0,0,.6))}
 .rl-sbt .rl-init{flex:none;height:18cqh;width:18cqh;font-size:6cqh}
 .rl-sbs{height:100%;min-width:15cqh;padding:0 2cqh;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:#0b1220;font-size:14cqh;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
@@ -745,10 +749,31 @@ function Ne(e, t = /* @__PURE__ */ new Date()) {
 	let n = Math.round((e.getTime() - t.getTime()) / 6e4);
 	return n <= 0 ? `Coup d'envoi ${K(e)}` : n < 60 ? `Coup d'envoi dans ${n} min` : n < 720 ? `Coup d'envoi dans ${Math.floor(n / 60)} h ${String(n % 60).padStart(2, "0")}` : `${q(e)} • ${K(e)}`;
 }
-function Y(e, t, n, r = "rl-logo") {
-	return e ? I`<img class=${r} src=${e} alt="" @error=${J} />` : I`<div class="${r} rl-init" style="background:${n || "#334155"}">${(t || "?").slice(0, 3).toUpperCase()}</div>`;
+function Y(e) {
+	let t = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(e || "");
+	if (!t) return "#fff";
+	let [n, r, i] = t.slice(1).map((e) => parseInt(e, 16));
+	return .299 * n + .587 * r + .114 * i > 160 ? "#0b1220" : "#fff";
 }
-var X = class {
+function X(e, t, n, r = "rl-logo") {
+	return e ? I`<img class=${r} src=${e} alt="" @error=${J} />` : I`<div class="${r} rl-init" style="background:${n || "#334155"};color:${Y(n)}">${(t || "?").slice(0, 3).toUpperCase()}</div>`;
+}
+function Z(e, t, n) {
+	let r = t === "home" ? "away" : "home", i = e.status === "finished" && e[`${t}_score`] < e[`${r}_score`];
+	return I`<div class="rl-t ${n.has(e[`${t}_id`]) ? "rl-fav" : ""} ${i ? "rl-lose" : ""}">
+    ${X(e[`${t}_logo`], e[`${t}_name`], e[`${t}_color`])}<span>${e[`${t}_name`]}</span>
+    <b class=${e.provisional ? "rl-prov" : ""}>${e.status === "scheduled" ? "" : e[`${t}_score`]}</b></div>`;
+}
+var Pe = o`
+  .rl-ts { display: grid; gap: 4px; min-width: 0; }
+  .rl-t { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; line-height: 1.2; }
+  .rl-t span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .rl-t b { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 24px; text-align: right; }
+  .rl-t .rl-logo { width: 24px; height: 24px; }
+  .rl-t .rl-init { font-size: 9px; }
+  .rl-lose { color: var(--secondary-text-color); }
+  .rl-prov { color: var(--warning-color, #f59e0b); }
+`, Q = class {
 	constructor(e) {
 		this.hass = e, this.all = Object.values(e.entities ?? {}).filter((e) => e.platform === "rugby_live");
 	}
@@ -780,10 +805,10 @@ var X = class {
 		return this.state(e, "match_status")?.attributes.team_id ?? this.state(e, "next_match")?.attributes.team_id;
 	}
 };
-function Z(e, t, n) {
+function $(e, t, n) {
 	return !e || !t || e.entities !== t.entities || n.some((n) => n && e.states[n] !== t.states[n]);
 }
-var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
+var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = o`
   :host { display: block; }
   ha-card { padding: 16px; overflow: hidden; position: relative; }
   .rl-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px;
@@ -798,22 +823,22 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
   .rl-muted { color: var(--secondary-text-color); }
   .rl-fav { font-weight: 700; }
   @media (prefers-reduced-motion: reduce) { .rl-live, .rl-flash { animation: none; } }
-`, Pe, Fe = {
+`, Le, Re = {
 	ticker: !0,
 	watermark: !0,
 	breakdown: !0,
 	bonus: !0,
 	animations: !0,
 	force_motion: !1
-}, Ie = {
+}, ze = {
 	top14: "Top 14",
 	champions_cup: "Champions Cup",
 	challenge_cup: "Challenge Cup"
-}, Le = {
+}, Be = {
 	first_half: "1re MT",
 	second_half: "2e MT",
 	extra_time: "PROLONG."
-}, Re = [
+}, Ve = [
 	"dim.",
 	"lun.",
 	"mar.",
@@ -821,7 +846,7 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 	"jeu.",
 	"ven.",
 	"sam."
-], ze = {
+], He = {
 	try: "ESSAI !",
 	conversion: "TRANSFORMATION",
 	penalty_goal: "PÉNALITÉ",
@@ -834,19 +859,19 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 	extra_time: "PROLONGATIONS",
 	full_time: "FIN DU MATCH",
 	revoked: "ACTION ANNULÉE"
-}, Be = {
+}, Ue = {
 	try: "Essai",
 	conversion: "Transformation",
 	penalty_goal: "Pénalité",
 	drop_goal: "Drop",
 	yellow_card: "Carton jaune",
 	red_card: "Carton rouge"
-}, Ve = [
+}, We = [
 	"try",
 	"conversion",
 	"penalty_goal",
 	"drop_goal"
-], He = class extends U {
+], Ge = class extends U {
 	constructor(...e) {
 		super(...e), this.isPanel = !1, this._config = { type: "custom:rugby-live-direct-card" }, this._score = {
 			key: "",
@@ -866,7 +891,7 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 		this._config = e;
 	}
 	static getStubConfig() {
-		return { ...Fe };
+		return { ...Re };
 	}
 	static getConfigForm() {
 		let e = (e) => ({
@@ -920,7 +945,7 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 	}
 	get cfg() {
 		return {
-			...Fe,
+			...Re,
 			...this._config
 		};
 	}
@@ -953,8 +978,8 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 	}
 	render() {
 		if (!this.hass) return R;
-		let e = this.cfg, t = this._ids(), n = (e) => e ? this.hass.states[e] : void 0, r = n(t.status), i = r ? r.state : "no_match", a = r?.attributes ?? {}, o = n(t.score)?.attributes ?? {}, s = n(t.anim), c = n(t.next), l = c?.attributes.team_id, u = e.watermark && Ie[a.competition] ? I`<img class="rl-wm" src="/local/images/rugby/competitions/${encodeURIComponent(Ie[a.competition])}.svg" @error=${J} />` : R, d = e.animations ? this._overlay(s, o, l) : R;
-		return I`<ha-card>
+		let e = this.cfg, t = this._ids(), n = (e) => e ? this.hass.states[e] : void 0, r = n(t.status), i = r ? r.state : "no_match", a = r?.attributes ?? {}, o = n(t.score)?.attributes ?? {}, s = n(t.anim), c = n(t.next), l = c?.attributes.team_id, u = e.watermark && ze[a.competition] ? I`<img class="rl-wm" src="/local/images/rugby/competitions/${encodeURIComponent(ze[a.competition])}.svg" @error=${J} />` : R, d = e.animations ? this._overlay(s, o, l) : R;
+		return I`<ha-card class=${this.isPanel ? "rl-panelcard" : ""}>
       <div class="rl-box ${this.isPanel ? "rl-panel" : ""}">
         <div class="rl-wrap ${e.force_motion ? "" : "rl-calm"}">
           ${u}${e.ticker ? this._ticker(a, t.live) : R}
@@ -969,7 +994,7 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 		if (n ||= t.flatMap((e) => this.hass.states[e]?.attributes.matches ?? []), !n.length) return R;
 		let r = n.map((e) => {
 			let t = new Date(e.kickoff);
-			return e.status === "scheduled" ? I`${e.home_name} – ${e.away_name} <b>${Re[t.getDay()]} ${K(t)}</b>` : I`${e.home_name} <b>${e.home_score} - ${e.away_score}</b> ${e.away_name}
+			return e.status === "scheduled" ? I`${e.home_name} – ${e.away_name} <b>${Ve[t.getDay()]} ${K(t)}</b>` : I`${e.home_name} <b>${e.home_score} - ${e.away_score}</b> ${e.away_name}
             <span style="color:#f87171">${G.includes(e.status) ? e.minute || "" : "Fin"}</span>`;
 		}), i = r.map((e, t) => I`${t ? I`&nbsp;&nbsp;•&nbsp;&nbsp;` : R}${e}`), a = Math.max(25, r.length * 7);
 		return I`<div class="rl-tick"><div class="rl-tick-in" style="animation-duration:${a}s;animation-delay:-${(Date.now() / 1e3 % a).toFixed(1)}s">
@@ -998,9 +1023,9 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 			];
 			return I`<div class="rl-comp">PROCHAIN MATCH DE ${(a.team_name || "").toUpperCase()} • ${W[a.competition] || ""}</div>
         <div class="rl-row">
-          <div class="rl-team">${Y(n[0], n[1], n[2])}<div class="rl-name">${n[1] || ""}</div></div>
+          <div class="rl-team">${X(n[0], n[1], n[2])}<div class="rl-name">${n[1] || ""}</div></div>
           <div class="rl-score"><span style="color:#64748b">VS</span></div>
-          <div class="rl-team">${Y(i[0], i[1], i[2])}<div class="rl-name">${i[1] || ""}</div></div>
+          <div class="rl-team">${X(i[0], i[1], i[2])}<div class="rl-name">${i[1] || ""}</div></div>
         </div>
         <div class="rl-state" style="color:#4ade80">${q(e)} • ${K(e)}</div>
         <div class="rl-last">${a.venue || ""}</div>
@@ -1011,9 +1036,9 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 			let e = new Date(t.kickoff), r = e.toDateString() === (/* @__PURE__ */ new Date()).toDateString() ? `Coup d'envoi ${K(e)}` : `${q(e)} • ${K(e)}`;
 			return I`<div class="rl-comp">${W[t.competition] || ""}</div>
         <div class="rl-row">
-          <div class="rl-team">${Y(n.home_logo, n.home_name, n.home_color)}<div class="rl-name">${n.home_name || ""}</div></div>
+          <div class="rl-team">${X(n.home_logo, n.home_name, n.home_color)}<div class="rl-name">${n.home_name || ""}</div></div>
           <div class="rl-score"><span style="color:#64748b">VS</span></div>
-          <div class="rl-team">${Y(n.away_logo, n.away_name, n.away_color)}<div class="rl-name">${n.away_name || ""}</div></div>
+          <div class="rl-team">${X(n.away_logo, n.away_name, n.away_color)}<div class="rl-name">${n.away_name || ""}</div></div>
         </div>
         <div class="rl-state"><span style="color:#4ade80">${r}</span></div>${d}`;
 		}
@@ -1023,7 +1048,7 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 			g = I`<div class="rl-next"><small>PROCHAIN MATCH • ${W[a.competition] || ""}</small><b>${t}</b><br />
         ${q(e)} • ${K(e)}${a.channel ? ` • 📺 ${a.channel}` : ""}</div>`;
 		}
-		let _ = n.home_score ?? 0, v = n.away_score ?? 0, y = n.counters ?? {}, b = o && e !== "half_time" ? I`<span class="rl-live">LIVE</span><b>${u}</b><small>${Le[e] || ""}</small>` : I`<b>${e === "half_time" ? "MT" : e === "finished" ? "FIN" : ""}</b>
+		let _ = n.home_score ?? 0, v = n.away_score ?? 0, y = n.counters ?? {}, b = o && e !== "half_time" ? I`<span class="rl-live">LIVE</span><b>${u}</b><small>${Be[e] || ""}</small>` : I`<b>${e === "half_time" ? "MT" : e === "finished" ? "FIN" : ""}</b>
           <small>${e === "half_time" ? "MI-TEMPS" : (Ae[e] || "").toUpperCase()}</small>`, x = (e) => this.cfg.breakdown ? je.filter(([t]) => e?.[t]).map(([t, n, r]) => I`<span><b>${e[t]}</b> ${e[t] > 1 ? r : n}</span>`) : R, S = (n, r, i, a) => {
 			if (!this.cfg.bonus || t.competition !== "top14") return R;
 			let o = n > r && i - a >= 3 ? "BONUS OFFENSIF" : n < r && r - n <= 5 ? "BONUS DÉFENSIF" : "";
@@ -1031,11 +1056,11 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 		}, C = (e) => e?.try ?? 0, w = this._bump(`${n.home_id}-${n.away_id}`, _, v, !!i && i.state !== "idle"), T = n.provisional ? "rl-prov" : "", E = (e, t, n) => Oe(`${e}${n}`, I`<div class="rl-sbs rl-sbs${e} ${T} ${n ? "rl-bump" : ""}">${t}</div>`);
 		return I`<div class="rl-comp">${W[t.competition] || ""}</div>
       <div class="rl-sb" style="--hc:${n.home_color || "#334155"};--ac:${n.away_color || "#334155"}">
-        <div class="rl-sbt rl-sbh">${Y(n.home_logo, n.home_name, n.home_color, "")}<span>${n.home_name || ""}</span></div>
+        <div class="rl-sbt rl-sbh ${Y(n.home_color) === "#fff" ? "" : "rl-dark"}">${X(n.home_logo, n.home_name, n.home_color, "")}<span>${n.home_name || ""}</span></div>
         ${E("h", _, w.h)}
         <div class="rl-clock">${b}</div>
         ${E("a", v, w.a)}
-        <div class="rl-sbt rl-sba"><span>${n.away_name || ""}</span>${Y(n.away_logo, n.away_name, n.away_color, "")}</div>
+        <div class="rl-sbt rl-sba ${Y(n.away_color) === "#fff" ? "" : "rl-dark"}"><span>${n.away_name || ""}</span>${X(n.away_logo, n.away_name, n.away_color, "")}</div>
         <div class="rl-sbd rl-sbdh"><div>${x(y.home)}</div>${S(_, v, C(y.home), C(y.away))}</div>
         <div class="rl-sbd rl-sbda"><div>${x(y.away)}</div>${S(v, _, C(y.away), C(y.home))}</div>
       </div>
@@ -1066,7 +1091,7 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 		}
 		let o = Date.now() - this._seen.t0;
 		if (isNaN(o) || o >= a) return R;
-		let s = i.team_id, c = !!s && s === t.home_id, l = r === "yellow_card" || r === "red_card", u = Ve.includes(r), d = !l && !u, f = c ? t.home_color : s ? t.away_color : null, p = c ? t.home_logo : s ? t.away_logo : null, m = r === "yellow_card" ? "#eab308" : r === "red_card" ? "#dc2626" : !d && f || "#334155", h = r === "yellow_card" ? "#111" : "#fff", g = `/local/rugby_live/anim/${n && s === n && u ? r + "_toulouse" : r}.mp4#t=${(o / 1e3 % 6).toFixed(1)}`, _ = ze[r] || r, v = i.minute ? `${i.minute}'` : "", y = o / 1e3, b = i.background ?? [], x = [
+		let s = i.team_id, c = !!s && s === t.home_id, l = r === "yellow_card" || r === "red_card", u = We.includes(r), d = !l && !u, f = c ? t.home_color : s ? t.away_color : null, p = c ? t.home_logo : s ? t.away_logo : null, m = r === "yellow_card" ? "#eab308" : r === "red_card" ? "#dc2626" : !d && f || "#334155", h = r === "yellow_card" ? "#111" : Y(m), g = `/local/rugby_live/anim/${n && s === n && u ? r + "_toulouse" : r}.mp4#t=${(o / 1e3 % 6).toFixed(1)}`, _ = He[r] || r, v = i.minute ? `${i.minute}'` : "", y = o / 1e3, b = i.background ?? [], x = [
 			0,
 			.8,
 			1.6
@@ -1077,7 +1102,7 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
 		], C = l || !b.includes("confetti") ? R : Array.from({ length: 36 }, (e, t) => I`<i class="rl-cf" style="left:${t * 37 % 100}%;width:${(.6 + t % 3 * .3).toFixed(1)}cqw;background:${S[t % 3]};animation-duration:${(3 + t % 5 * .6).toFixed(1)}s;animation-delay:-${(y + t * .53).toFixed(2)}s"></i>`), w = l ? I`<div class="rl-strobe"></div>${x}` : I`${b.includes("rays") ? I`<div class="rl-burst" style="animation-duration:${a}ms"></div><div class="rl-rays2"></div>` : R}
           ${b.includes("beams") ? I`<div class="rl-beam rl-l"></div><div class="rl-beam rl-r"></div>` : R}
           ${b.includes("rings") ? x : R}`, T = d ? null : i.player_photo, E = p && !d ? I`<img class="rl-ovlogo" src=${p} @error=${J} />` : R, D = l ? I`<div class="rl-card"></div>` : R, O = I`<div class="rl-ovtxt" style="--n:${_.length}">${_}</div>`, k = [
-			r === "revoked" && Be[i.revoked_type],
+			r === "revoked" && Ue[i.revoked_type],
 			i.player || i.team_name,
 			v
 		].filter(Boolean).join(" • "), A = T ? I`<div class="rl-phw"><img class="rl-ph" src=${T} @error=${J} />${D}</div>
@@ -1098,14 +1123,14 @@ var Q = { device: { filter: { integration: "rugby_live" } } }, $ = o`
       ${w}${A}${C}${ee}</div>`);
 	}
 };
-Pe = He, Pe.styles = ke, Pe.properties = {
+Le = Ge, Le.styles = ke, Le.properties = {
 	hass: { attribute: !1 },
 	isPanel: { attribute: !1 },
 	_config: { state: !0 }
 };
 //#endregion
 //#region src/fixtures-card.ts
-var Ue, We = class extends U {
+var Ke, qe = class extends U {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:rugby-live-fixtures-card" };
 	}
@@ -1124,7 +1149,7 @@ var Ue, We = class extends U {
 		return {
 			schema: [{
 				name: "device",
-				selector: Q
+				selector: Fe
 			}, {
 				type: "grid",
 				name: "",
@@ -1166,7 +1191,7 @@ var Ue, We = class extends U {
 		};
 	}
 	shouldUpdate(e) {
-		return !e.has("hass") || e.size > 1 || !this.hass || Z(e.get("hass"), this.hass, this._sources(new X(this.hass)).ids);
+		return !e.has("hass") || e.size > 1 || !this.hass || $(e.get("hass"), this.hass, this._sources(new Q(this.hass)).ids);
 	}
 	render() {
 		if (!this.hass) return R;
@@ -1174,7 +1199,7 @@ var Ue, We = class extends U {
 			count_upcoming: 6,
 			count_results: 4,
 			...this._config
-		}, t = new X(this.hass), n = this._sources(t), r = n.competition ? void 0 : t.teamId(n.device), i = new Set(t.teams().map((e) => t.teamId(e)).filter(Boolean)), a = /* @__PURE__ */ new Set(), o = n.ids.flatMap((e) => this.hass.states[e]?.attributes.fixtures ?? []).filter((e) => !r || e.home_id === r || e.away_id === r).filter((e) => !a.has(e.match_id) && !!a.add(e.match_id)).sort((e, t) => Date.parse(e.kickoff) - Date.parse(t.kickoff)), s = o.filter((e) => G.includes(e.status)), c = o.filter((e) => e.status === "scheduled").slice(0, e.count_upcoming), l = o.filter((e) => e.status === "finished").slice(-e.count_results).reverse(), u = n.competition ? W[o[0]?.competition] || "Calendrier" : this.hass.states[t.pick(n.device, "next_match") ?? ""]?.attributes.team_name || "Calendrier", d = (e, t) => t.length ? I`<div class="rl-sec">${e}</div>${this._days(t, i, !n.competition)}` : R;
+		}, t = new Q(this.hass), n = this._sources(t), r = n.competition ? void 0 : t.teamId(n.device), i = new Set(t.teams().map((e) => t.teamId(e)).filter(Boolean)), a = /* @__PURE__ */ new Set(), o = n.ids.flatMap((e) => this.hass.states[e]?.attributes.fixtures ?? []).filter((e) => !r || e.home_id === r || e.away_id === r).filter((e) => !a.has(e.match_id) && !!a.add(e.match_id)).sort((e, t) => Date.parse(e.kickoff) - Date.parse(t.kickoff)), s = o.filter((e) => G.includes(e.status)), c = o.filter((e) => e.status === "scheduled").slice(0, e.count_upcoming), l = o.filter((e) => e.status === "finished").slice(-e.count_results).reverse(), u = n.competition ? W[o[0]?.competition] || "Calendrier" : this.hass.states[t.pick(n.device, "next_match") ?? ""]?.attributes.team_name || "Calendrier", d = (e, t) => t.length ? I`<div class="rl-sec">${e}</div>${this._days(t, i, !n.competition)}` : R;
 		return I`<ha-card>
       <div class="rl-h"><span>${u}</span>${s.length ? I`<span class="rl-live">LIVE</span>` : R}</div>
       ${o.length ? I`${d("En direct", s)}${d("À venir", c)}${d("Résultats", l)}` : I`<div class="rl-empty">Aucun match dans les prochains jours</div>`}
@@ -1185,39 +1210,36 @@ var Ue, We = class extends U {
 		return e.map((e) => {
 			let i = new Date(e.kickoff), a = q(i), o = a === r ? R : I`<div class="rl-day">${a}</div>`;
 			r = a;
-			let s = e.status === "scheduled" ? K(i) : `${e.home_score} - ${e.away_score}`;
+			let s = G.includes(e.status), c = e.status === "scheduled" ? K(i) : e.status === "half_time" ? "MT" : s ? e.minute || "LIVE" : "Fin";
 			return I`${o}<div class="rl-m">
-        <div class="rl-t ${t.has(e.home_id) ? "rl-fav" : ""}">${Y(e.home_logo, e.home_name, e.home_color)}<span>${e.home_name}</span></div>
-        <div class="rl-mid ${e.status === "scheduled" ? "rl-time" : ""} ${G.includes(e.status) ? "rl-red" : ""}">${s}</div>
-        <div class="rl-t rl-r ${t.has(e.away_id) ? "rl-fav" : ""}"><span>${e.away_name}</span>${Y(e.away_logo, e.away_name, e.away_color)}</div>
+        <div class="rl-mid ${s ? "rl-red" : ""}">${c}</div>
+        <div class="rl-ts">${Z(e, "home", t)}${Z(e, "away", t)}</div>
         ${n && e.competition || e.status === "scheduled" && e.channel ? I`<div class="rl-sub">${[n && W[e.competition], e.status === "scheduled" && e.channel && `📺 ${e.channel}`].filter(Boolean).join(" • ")}</div>` : R}
       </div>`;
 		});
 	}
 };
-Ue = We, Ue.properties = {
+Ke = qe, Ke.properties = {
 	hass: { attribute: !1 },
 	_config: { state: !0 }
-}, Ue.styles = [$, o`
+}, Ke.styles = [
+	Ie,
+	Pe,
+	o`
     .rl-sec { margin: 12px 0 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary-color); }
     .rl-sec:first-of-type { margin-top: 0; }
     .rl-day { margin-top: 6px; font-size: 12px; color: var(--secondary-text-color); }
     .rl-day::first-letter { text-transform: uppercase; }
-    .rl-m { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 2px 10px;
+    .rl-m { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 2px 10px;
       padding: 6px 0; border-bottom: 1px solid var(--divider-color); }
-    .rl-t { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; }
-    .rl-t span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .rl-r { justify-content: flex-end; text-align: right; }
-    .rl-t .rl-logo { width: 24px; height: 24px; }
-    .rl-t .rl-init { font-size: 9px; }
-    .rl-mid { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: center; min-width: 52px; }
-    .rl-time { font-weight: 600; color: var(--secondary-text-color); }
+    .rl-mid { font-size: 12px; font-weight: 700; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
     .rl-red { color: #dc2626; }
-    .rl-sub { grid-column: 1 / -1; text-align: center; font-size: 12px; color: var(--secondary-text-color); }
-  `];
+    .rl-sub { grid-column: 2; font-size: 12px; color: var(--secondary-text-color); }
+  `
+];
 //#endregion
 //#region src/multiplex-card.ts
-var Ge, Ke = class extends U {
+var Je, Ye = class extends U {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:rugby-live-multiplex-card" };
 	}
@@ -1237,7 +1259,7 @@ var Ge, Ke = class extends U {
 			schema: [{
 				name: "devices",
 				selector: { device: {
-					...Q.device,
+					...Fe.device,
 					multiple: !0
 				} }
 			}, {
@@ -1265,7 +1287,7 @@ var Ge, Ke = class extends U {
 		return (this._config.devices?.length ? this._config.devices : e.competitions()).map((t) => e.pick(t, "live_matches")).filter((e) => !!e);
 	}
 	shouldUpdate(e) {
-		return !e.has("hass") || e.size > 1 || !this.hass || Z(e.get("hass"), this.hass, this._ids(new X(this.hass)));
+		return !e.has("hass") || e.size > 1 || !this.hass || $(e.get("hass"), this.hass, this._ids(new Q(this.hass)));
 	}
 	render() {
 		if (!this.hass) return R;
@@ -1273,54 +1295,49 @@ var Ge, Ke = class extends U {
 			show_finished: !0,
 			compact: !1,
 			...this._config
-		}, t = new X(this.hass), n = new Set(t.teams().map((e) => t.teamId(e)).filter(Boolean)), r = this._ids(t).map((e) => this.hass.states[e]?.attributes.matches ?? []).map((t) => t.filter((t) => e.show_finished || t.status !== "finished")).filter((e) => e.length), i = r.length ? r.map((e) => I`<div class="rl-group">
+		}, t = new Q(this.hass), n = new Set(t.teams().map((e) => t.teamId(e)).filter(Boolean)), r = this._ids(t).map((e) => this.hass.states[e]?.attributes.matches ?? []).map((t) => t.filter((t) => e.show_finished || t.status !== "finished")).filter((e) => e.length), i = r.length ? r.map((e) => I`<div class="rl-group">
           <div class="rl-h"><span>${W[e[0].competition] || ""}</span>
             <span>${e.some((e) => G.includes(e.status)) ? I`<span class="rl-live">LIVE</span>` : R}</span></div>
           ${e.map((e) => this._match(e, n))}</div>`) : I`<div class="rl-empty">Aucun match aujourd'hui</div>`;
 		return I`<ha-card class=${e.compact ? "rl-compact" : ""}>${i}</ha-card>`;
 	}
 	_match(e, t) {
-		let n = G.includes(e.status), r = e.status === "half_time" ? "MT" : n ? e.minute || "" : e.status === "finished" ? "Fin" : e.status === "scheduled" ? K(new Date(e.kickoff)) : "", i = e.status === "scheduled" ? I`<span class="rl-muted">-</span>` : I`${e.home_score} - ${e.away_score}`;
+		let n = G.includes(e.status), r = e.status === "half_time" ? "MT" : n ? e.minute || "" : e.status === "finished" ? "Fin" : e.status === "scheduled" ? K(new Date(e.kickoff)) : "";
 		return I`<div class="rl-match ${n ? "rl-on" : ""}">
       <div class="rl-when ${n ? "rl-red" : ""}">${r}</div>
-      <div class="rl-t ${t.has(e.home_id) ? "rl-fav" : ""}">${Y(e.home_logo, e.home_name, e.home_color)}<span>${e.home_name}</span></div>
-      <div class="rl-sc ${e.provisional ? "rl-prov" : ""}">${i}</div>
-      <div class="rl-t rl-r ${t.has(e.away_id) ? "rl-fav" : ""}"><span>${e.away_name}</span>${Y(e.away_logo, e.away_name, e.away_color)}</div>
+      <div class="rl-ts">${Z(e, "home", t)}${Z(e, "away", t)}</div>
       ${n && e.last_event ? I`<div class="rl-ev">${e.last_event}</div>` : R}
       ${e.status === "scheduled" && e.channel ? I`<div class="rl-ev">📺 ${e.channel}</div>` : R}
     </div>`;
 	}
 };
-Ge = Ke, Ge.properties = {
+Je = Ye, Je.properties = {
 	hass: { attribute: !1 },
 	_config: { state: !0 }
-}, Ge.styles = [$, o`
+}, Je.styles = [
+	Ie,
+	Pe,
+	o`
     .rl-group + .rl-group { margin-top: 16px; }
-    .rl-match { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto minmax(0, 1fr); align-items: center;
+    .rl-match { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center;
       gap: 4px 10px; padding: 8px 0; border-top: 1px solid var(--divider-color); }
     .rl-when { font-size: 12px; font-weight: 700; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
     .rl-red { color: #dc2626; }
-    .rl-t { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; }
-    .rl-t span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .rl-r { justify-content: flex-end; text-align: right; }
-    .rl-t .rl-logo { width: 26px; height: 26px; }
-    .rl-t .rl-init { font-size: 9px; }
-    .rl-sc { font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums; white-space: nowrap; text-align: center; min-width: 52px; }
-    .rl-prov { color: var(--warning-color, #f59e0b); }
-    .rl-ev { grid-column: 2 / -1; font-size: 12px; color: var(--secondary-text-color); text-align: center; }
+    .rl-ev { grid-column: 2; font-size: 12px; color: var(--secondary-text-color); }
     .rl-compact .rl-match { padding: 5px 0; }
     .rl-compact .rl-t .rl-logo { width: 20px; height: 20px; }
-  `];
+  `
+];
 //#endregion
 //#region src/scoreboard-card.ts
-var qe, Je = [
+var Xe, Ze = [
 	"match_status",
 	"score",
 	"minute",
 	"last_event",
 	"sin_bin",
 	"next_match"
-], Ye = class extends U {
+], Qe = class extends U {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:rugby-live-scoreboard-card" };
 	}
@@ -1343,7 +1360,7 @@ var qe, Je = [
 		return {
 			schema: [{
 				name: "device",
-				selector: Q
+				selector: Fe
 			}, {
 				type: "grid",
 				name: "",
@@ -1374,8 +1391,8 @@ var qe, Je = [
 	}
 	shouldUpdate(e) {
 		if (!e.has("hass") || e.size > 1 || !this.hass) return !0;
-		let t = new X(this.hass), n = this._device(t);
-		return Z(e.get("hass"), this.hass, Je.map((e) => t.pick(n, e)));
+		let t = new Q(this.hass), n = this._device(t);
+		return $(e.get("hass"), this.hass, Ze.map((e) => t.pick(n, e)));
 	}
 	render() {
 		if (!this.hass) return R;
@@ -1384,7 +1401,7 @@ var qe, Je = [
 			show_counters: !0,
 			compact: !1,
 			...this._config
-		}, t = new X(this.hass), n = this._device(t), r = t.state(n, "match_status"), i = r?.state ?? "no_match", a = (t) => I`<ha-card class=${e.compact ? "rl-compact" : ""}>${t}</ha-card>`;
+		}, t = new Q(this.hass), n = this._device(t), r = t.state(n, "match_status"), i = r?.state ?? "no_match", a = (t) => I`<ha-card class=${e.compact ? "rl-compact" : ""}>${t}</ha-card>`;
 		if (!r || i === "no_match" || i === "unavailable") {
 			let r = t.state(n, "next_match");
 			if (!Me(r)) return a(I`<div class="rl-empty">Aucun match prévu</div>`);
@@ -1403,9 +1420,9 @@ var qe, Je = [
 	}
 	_row(e, t, n, r, i, a, o, s) {
 		return I`<div class="rl-row">
-      <div class="rl-team">${e ? Y(t, n, r) : R}<span>${n || ""}</span></div>
+      <div class="rl-team">${e ? X(t, n, r) : R}<span>${n || ""}</span></div>
       <div class="rl-score">${i}</div>
-      <div class="rl-team rl-away"><span>${o || ""}</span>${e ? Y(a, o, s) : R}</div>
+      <div class="rl-team">${e ? X(a, o, s) : R}<span>${o || ""}</span></div>
     </div>`;
 	}
 	_counters(e) {
@@ -1425,14 +1442,14 @@ var qe, Je = [
 		return Oe(e.last_changed, I`<div class="rl-flash" style="--c:${i || "var(--primary-color)"}"></div>`);
 	}
 };
-qe = Ye, qe.properties = {
+Xe = Qe, Xe.properties = {
 	hass: { attribute: !1 },
 	_config: { state: !0 }
-}, qe.styles = [$, o`
+}, Xe.styles = [Ie, o`
     .rl-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; }
-    .rl-team { display: flex; align-items: center; gap: 10px; min-width: 0; font-weight: 700; font-size: 15px; }
-    .rl-team span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .rl-away { justify-content: flex-end; text-align: right; }
+    /* Logo above the name, the name wraps: never cut, even in a narrow column (tablet). */
+    .rl-team { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0;
+      font-weight: 700; font-size: 15px; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
     .rl-score { font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1; }
     .rl-dash { color: var(--secondary-text-color); margin: 0 6px; }
     .rl-vs { color: var(--secondary-text-color); font-size: 20px; }
@@ -1442,7 +1459,7 @@ qe = Ye, qe.properties = {
     .rl-cnt { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; margin-top: 10px;
       font-size: 12px; color: var(--secondary-text-color); }
     .rl-cnt > div { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
-    .rl-cnt > div:last-child { justify-content: flex-end; }
+    .rl-cnt > div { justify-content: center; }
     .rl-cnt b { color: var(--primary-text-color); }
     .rl-cards { display: inline-flex; gap: 3px; }
     .rl-yc, .rl-rc { display: inline-block; width: 9px; height: 13px; border-radius: 2px; background: #eab308; vertical-align: -2px; margin-right: 4px; }
@@ -1458,7 +1475,7 @@ qe = Ye, qe.properties = {
   `];
 //#endregion
 //#region src/timeline-card.ts
-var Xe, Ze = {
+var $e, et = {
 	try: "mdi:rugby",
 	conversion: "mdi:numeric-2-circle",
 	penalty_goal: "mdi:numeric-3-circle",
@@ -1467,10 +1484,10 @@ var Xe, Ze = {
 	red_card: "mdi:card",
 	sub_on: "mdi:swap-horizontal",
 	sub_off: "mdi:swap-horizontal"
-}, Qe = {
+}, tt = {
 	yellow_card: "#eab308",
 	red_card: "#dc2626"
-}, $e = class extends U {
+}, nt = class extends U {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:rugby-live-timeline-card" };
 	}
@@ -1489,7 +1506,7 @@ var Xe, Ze = {
 		return {
 			schema: [{
 				name: "device",
-				selector: Q
+				selector: Fe
 			}, {
 				type: "grid",
 				name: "",
@@ -1523,8 +1540,8 @@ var Xe, Ze = {
 	}
 	shouldUpdate(e) {
 		if (!e.has("hass") || e.size > 1 || !this.hass) return !0;
-		let t = new X(this.hass), n = this._device(t);
-		return Z(e.get("hass"), this.hass, [t.pick(n, "last_event"), t.pick(n, "score")]);
+		let t = new Q(this.hass), n = this._device(t);
+		return $(e.get("hass"), this.hass, [t.pick(n, "last_event"), t.pick(n, "score")]);
 	}
 	render() {
 		if (!this.hass) return R;
@@ -1532,21 +1549,21 @@ var Xe, Ze = {
 			show_subs: !1,
 			limit: 15,
 			...this._config
-		}, t = new X(this.hass), n = this._device(t), r = t.state(n, "score")?.attributes ?? {}, i = t.state(n, "match_status")?.attributes ?? {}, a = (t.state(n, "last_event")?.attributes.events ?? []).filter((t) => e.show_subs || !String(t.type).startsWith("sub_")).slice(-e.limit).reverse(), o = (e) => (e === "home" ? r.home_color : e === "away" ? r.away_color : null) || "var(--divider-color)", s = r.home_name ? `${r.home_name} – ${r.away_name}` : "";
+		}, t = new Q(this.hass), n = this._device(t), r = t.state(n, "score")?.attributes ?? {}, i = t.state(n, "match_status")?.attributes ?? {}, a = (t.state(n, "last_event")?.attributes.events ?? []).filter((t) => e.show_subs || !String(t.type).startsWith("sub_")).slice(-e.limit).reverse(), o = (e) => (e === "home" ? r.home_color : e === "away" ? r.away_color : null) || "var(--divider-color)", s = r.home_name ? `${r.home_name} – ${r.away_name}` : "";
 		return I`<ha-card>
       <div class="rl-h"><span>${W[i.competition] ? `${W[i.competition]} • ` : ""}${s}</span></div>
       ${a.length ? I`<ol class="rl-list">${a.map((e) => I`<li style="--c:${o(e.side)}">
             <span class="rl-min">${e.minute == null ? "" : `${e.minute}'`}</span>
-            <ha-icon icon=${Ze[e.type] || "mdi:circle-small"} style=${Qe[e.type] ? `color:${Qe[e.type]}` : ""}></ha-icon>
+            <ha-icon icon=${et[e.type] || "mdi:circle-small"} style=${tt[e.type] ? `color:${tt[e.type]}` : ""}></ha-icon>
             <span class="rl-what"><b>${e.label}</b>${e.player ? I` — ${e.player}` : R}
               <small>${e.team || ""}</small></span></li>`)}</ol>` : I`<div class="rl-empty">Aucune action pour le moment</div>`}
     </ha-card>`;
 	}
 };
-Xe = $e, Xe.properties = {
+$e = nt, $e.properties = {
 	hass: { attribute: !1 },
 	_config: { state: !0 }
-}, Xe.styles = [$, o`
+}, $e.styles = [Ie, o`
     .rl-list { list-style: none; margin: 0; padding: 0; }
     .rl-list li { display: grid; grid-template-columns: 36px 24px minmax(0, 1fr); align-items: center; gap: 10px;
       padding: 7px 0 7px 10px; border-left: 4px solid var(--c); border-top: 1px solid var(--divider-color); }
@@ -1558,39 +1575,39 @@ Xe = $e, Xe.properties = {
   `];
 //#endregion
 //#region src/main.ts
-var et = [
+var rt = [
 	[
 		"rugby-live-direct-card",
-		He,
+		Ge,
 		"Rugby Live – Direct",
 		"Tableau de score plein écran, bandeau des matchs et animations des actions (essais, cartons…)."
 	],
 	[
 		"rugby-live-scoreboard-card",
-		Ye,
+		Qe,
 		"Rugby Live – Score",
 		"Score d'une équipe favorite : match en cours ou prochain match, compteurs, cartons."
 	],
 	[
 		"rugby-live-multiplex-card",
-		Ke,
+		Ye,
 		"Rugby Live – Multiplex",
 		"Tous les matchs du jour en direct, une ou plusieurs compétitions."
 	],
 	[
 		"rugby-live-timeline-card",
-		$e,
+		nt,
 		"Rugby Live – Fil du match",
 		"Frise des actions du match, la plus récente en haut."
 	],
 	[
 		"rugby-live-fixtures-card",
-		We,
+		qe,
 		"Rugby Live – Calendrier",
 		"Prochains matchs et derniers résultats d'une compétition ou d'une équipe."
 	]
 ];
-for (let [e, t, n, r] of et) customElements.get(e) || customElements.define(e, t), window.customCards = window.customCards || [], window.customCards.some((t) => t.type === e) || window.customCards.push({
+for (let [e, t, n, r] of rt) customElements.get(e) || customElements.define(e, t), window.customCards = window.customCards || [], window.customCards.some((t) => t.type === e) || window.customCards.push({
 	type: e,
 	name: n,
 	description: r,

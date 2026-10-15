@@ -30,11 +30,39 @@ export function untilKickoff(kickoff: Date, now = new Date()): string {
   return `${longDate(kickoff)} • ${hhmm(kickoff)}`;
 }
 
+/** Text colour readable on a team colour: dark on yellow or sky blue, white otherwise. */
+export function ink(color: string | null | undefined): string {
+  const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(color || '');
+  if (!m) return '#fff';
+  const [r, g, b] = m.slice(1).map((h) => parseInt(h, 16));
+  return 0.299 * r + 0.587 * g + 0.114 * b > 160 ? '#0b1220' : '#fff';
+}
+
 export function logo(url: string | null | undefined, name: string | undefined, color: string | undefined, cls = 'rl-logo'): TemplateResult {
   return url
     ? html`<img class=${cls} src=${url} alt="" @error=${hide} />`
-    : html`<div class="${cls} rl-init" style="background:${color || '#334155'}">${(name || '?').slice(0, 3).toUpperCase()}</div>`;
+    : html`<div class="${cls} rl-init" style="background:${color || '#334155'};color:${ink(color)}">${(name || '?').slice(0, 3).toUpperCase()}</div>`;
 }
+
+/** One line per team: logo, full name (wraps, never cut), score once the match started. */
+export function teamLine(m: Attrs, p: 'home' | 'away', fav: Set<string | undefined>): TemplateResult {
+  const o = p === 'home' ? 'away' : 'home';
+  const lose = m.status === 'finished' && m[`${p}_score`] < m[`${o}_score`];
+  return html`<div class="rl-t ${fav.has(m[`${p}_id`]) ? 'rl-fav' : ''} ${lose ? 'rl-lose' : ''}">
+    ${logo(m[`${p}_logo`], m[`${p}_name`], m[`${p}_color`])}<span>${m[`${p}_name`]}</span>
+    <b class=${m.provisional ? 'rl-prov' : ''}>${m.status === 'scheduled' ? '' : m[`${p}_score`]}</b></div>`;
+}
+
+export const teamLineStyles = css`
+  .rl-ts { display: grid; gap: 4px; min-width: 0; }
+  .rl-t { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; line-height: 1.2; }
+  .rl-t span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .rl-t b { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 24px; text-align: right; }
+  .rl-t .rl-logo { width: 24px; height: 24px; }
+  .rl-t .rl-init { font-size: 9px; }
+  .rl-lose { color: var(--secondary-text-color); }
+  .rl-prov { color: var(--warning-color, #f59e0b); }
+`;
 
 /** Integration entities, found by translation key (works whatever the language or names). */
 export class RugbyEntities {

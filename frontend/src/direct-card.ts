@@ -6,7 +6,7 @@ import { keyed } from 'lit/directives/keyed.js';
 import { directStyles } from './styles';
 import type { Hass, HassEntity } from './hass';
 import {
-  BREAKDOWN, COMP, LIVE, STATUS, hhmm, hide, logo, longDate, usable, type Attrs, type Counters,
+  BREAKDOWN, COMP, LIVE, STATUS, hhmm, hide, ink, logo, longDate, usable, type Attrs, type Counters,
 } from './common';
 
 export interface DirectConfig {
@@ -144,7 +144,7 @@ export class RugbyLiveDirectCard extends LitElement {
       ? html`<img class="rl-wm" src="/local/images/rugby/competitions/${encodeURIComponent(WM[sa.competition])}.svg" @error=${hide} />`
       : nothing;
     const overlay = c.animations ? this._overlay(anim, a, favId) : nothing;
-    return html`<ha-card>
+    return html`<ha-card class=${this.isPanel ? 'rl-panelcard' : ''}>
       <div class="rl-box ${this.isPanel ? 'rl-panel' : ''}">
         <div class="rl-wrap ${c.force_motion ? '' : 'rl-calm'}">
           ${wm}${c.ticker ? this._ticker(sa, ids.live) : nothing}
@@ -250,11 +250,11 @@ export class RugbyLiveDirectCard extends LitElement {
       keyed(`${side}${n}`, html`<div class="rl-sbs rl-sbs${side} ${prov} ${n ? 'rl-bump' : ''}">${value}</div>`);
     return html`<div class="rl-comp">${COMP[sa.competition] || ''}</div>
       <div class="rl-sb" style="--hc:${a.home_color || '#334155'};--ac:${a.away_color || '#334155'}">
-        <div class="rl-sbt rl-sbh">${logo(a.home_logo, a.home_name, a.home_color, '')}<span>${a.home_name || ''}</span></div>
+        <div class="rl-sbt rl-sbh ${ink(a.home_color) === '#fff' ? '' : 'rl-dark'}">${logo(a.home_logo, a.home_name, a.home_color, '')}<span>${a.home_name || ''}</span></div>
         ${scoreBlock('h', hs, bump.h)}
         <div class="rl-clock">${clock}</div>
         ${scoreBlock('a', as, bump.a)}
-        <div class="rl-sbt rl-sba"><span>${a.away_name || ''}</span>${logo(a.away_logo, a.away_name, a.away_color, '')}</div>
+        <div class="rl-sbt rl-sba ${ink(a.away_color) === '#fff' ? '' : 'rl-dark'}"><span>${a.away_name || ''}</span>${logo(a.away_logo, a.away_name, a.away_color, '')}</div>
         <div class="rl-sbd rl-sbdh"><div>${brk(cnt.home)}</div>${bonus(hs, as, tries(cnt.home), tries(cnt.away))}</div>
         <div class="rl-sbd rl-sbda"><div>${brk(cnt.away)}</div>${bonus(as, hs, tries(cnt.away), tries(cnt.home))}</div>
       </div>
@@ -298,7 +298,7 @@ export class RugbyLiveDirectCard extends LitElement {
     const tcolor = home ? a.home_color : tid ? a.away_color : null;
     const tlogo = home ? a.home_logo : tid ? a.away_logo : null;
     const color = t === 'yellow_card' ? '#eab308' : t === 'red_card' ? '#dc2626' : (!info && tcolor) || '#334155';
-    const fg = t === 'yellow_card' ? '#111' : '#fff';
+    const fg = t === 'yellow_card' ? '#111' : ink(color);
     const special = !!favId && tid === favId && scoring;
     const media = `/local/rugby_live/anim/${special ? t + '_toulouse' : t}.mp4#t=${((age / 1000) % 6).toFixed(1)}`;
     const label = TITLE[t] || t;
