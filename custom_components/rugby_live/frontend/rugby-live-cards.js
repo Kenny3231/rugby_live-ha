@@ -945,14 +945,14 @@ var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = { device: {
 		};
 	}
 	_ids() {
-		let e = new Q(this.hass), t = e.followed(), n = e.resolve(this._config.device) || e.teams()[0] || t, r = n === t ? e.teams()[0] : n;
+		let e = new Q(this.hass), t = e.followed(), n = e.teams(), r = e.resolve(this._config.device), i = r && (r === t || n.includes(r)) ? r : n[0] || t, a = i === t ? n[0] : i;
 		return {
-			status: e.pick(n, "match_status"),
-			score: e.pick(n, "score"),
-			minute: e.pick(n, "minute"),
-			last: e.pick(n, "last_event"),
+			status: e.pick(i, "match_status"),
+			score: e.pick(i, "score"),
+			minute: e.pick(i, "minute"),
+			last: e.pick(i, "last_event"),
 			anim: e.pick(t, "animation"),
-			next: e.pick(r, "next_match"),
+			next: e.pick(a, "next_match"),
 			live: e.all.filter((e) => e.translation_key === "live_matches").map((e) => e.entity_id)
 		};
 	}

@@ -104,8 +104,11 @@ export class RugbyLiveDirectCard extends LitElement {
   private _ids() {
     const ents = new RugbyEntities(this.hass!);
     const followed = ents.followed();
-    const device = ents.resolve(this._config.device) || ents.teams()[0] || followed;
-    const nextOf = device === followed ? ents.teams()[0] : device; // "Match suivi" has no next match
+    const teams = ents.teams();
+    // Older configs could point at any device (a competition): fall back to the default.
+    const chosen = ents.resolve(this._config.device);
+    const device = chosen && (chosen === followed || teams.includes(chosen)) ? chosen : teams[0] || followed;
+    const nextOf = device === followed ? teams[0] : device; // "Match suivi" has no next match
     return {
       status: ents.pick(device, 'match_status'),
       score: ents.pick(device, 'score'),
