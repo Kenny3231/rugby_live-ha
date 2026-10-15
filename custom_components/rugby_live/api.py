@@ -11,6 +11,7 @@ import logging
 import re
 import time
 import unicodedata
+from dataclasses import replace
 from datetime import date, datetime
 from typing import Any
 
@@ -71,6 +72,47 @@ LNR_SLUGS = {
     "289337": "vannes",
 }
 
+# Club colours of Top 14 clubs (primary, alternate): ESPN's are often wrong (Toulouse
+# black, Bordeaux-Bègles navy). Hex without '#', like ESPN's.
+# ponytail: static map like LNR_SLUGS, update on promotion/relegation.
+CLUB_COLORS = {
+    "25912": ("2B8FD0", "FFFFFF"),  # Bayonne: sky blue / white
+    "143737": ("7A1E3D", "1A1A1A"),  # Bordeaux-Bègles: bordeaux / black
+    "25916": ("0047AB", "FFFFFF"),  # Castres: blue / white
+    "25917": ("FFC20E", "0B2A6B"),  # Clermont: yellow / navy
+    "119318": ("FFD100", "111111"),  # La Rochelle: yellow / black
+    "143736": ("D50032", "111111"),  # Lyon: red / black
+    "25918": ("0A2A66", "FFFFFF"),  # Montpellier: navy / white
+    "270567": ("007A3D", "FFFFFF"),  # Pau: green / white
+    "25920": ("D52B1E", "F7C600"),  # Perpignan: blood red / gold
+    "99855": ("75B2DD", "0B1F3A"),  # Racing 92: sky blue / navy
+    "25921": ("E4007C", "0A1F44"),  # Stade Français: pink / navy
+    "25922": ("C8102E", "111111"),  # Stade Toulousain: red / black
+    "25986": ("E2001A", "111111"),  # Toulon: red / black
+    "289337": ("00539F", "FFFFFF"),  # Vannes: blue / white
+}
+
+
+def colors_clash(a: str | None, b: str | None) -> bool:
+    """True when two hex colours look alike on screen ('redmean' distance < 100)."""
+    try:
+        r1, g1, b1 = (int(a[i : i + 2], 16) for i in (0, 2, 4))  # type: ignore[index]
+        r2, g2, b2 = (int(b[i : i + 2], 16) for i in (0, 2, 4))  # type: ignore[index]
+    except TypeError, ValueError:
+        return False
+    rm = (r1 + r2) / 2
+    red, green, blue = (r1 - r2) ** 2, (g1 - g2) ** 2, (b1 - b2) ** 2
+    dist = (2 + rm / 256) * red + 4 * green + (2 + (255 - rm) / 256) * blue
+    return dist**0.5 < 100
+
+
+def match_colors(home: Team, away: Team) -> Team:
+    """Away team, in its alternate colour when it would look like the home team."""
+    alternate = CLUB_COLORS.get(away.id, (None, None))[1]
+    if alternate and colors_clash(home.color, away.color):
+        return replace(away, color=alternate)
+    return away
+
 
 class EspnError(Exception):
     """Network or HTTP error talking to ESPN."""
@@ -116,7 +158,7 @@ def _parse_team(raw: dict[str, Any]) -> Team:
         id=tid,
         name=raw.get("displayName") or raw.get("name") or tid,
         abbreviation=raw.get("abbreviation"),
-        color=raw.get("color"),
+        color=CLUB_COLORS[tid][0] if tid in CLUB_COLORS else raw.get("color"),
         logo=team_logo(tid, raw.get("logo")),
     )
 
@@ -162,8 +204,8 @@ def parse_scoreboard(data: dict[str, Any], league_id: str) -> list[Match]:
                     kickoff=datetime.fromisoformat(
                         (comp.get("date") or event["date"]).replace("Z", "+00:00")
                     ),
-                    home=_parse_team(home.get("team") or {}),
-                    away=_parse_team(away.get("team") or {}),
+                    home=(home_team := _parse_team(home.get("team") or {})),
+                    away=match_colors(home_team, _parse_team(away.get("team") or {})),
                     home_score=_int(home.get("score")),
                     away_score=_int(away.get("score")),
                     status=status,

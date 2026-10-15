@@ -114,3 +114,40 @@ def test_player_photo_matches_espn_names() -> None:
     assert who("999", "Ramos") is None  # ambiguous league-wide
     assert who("25921", "Unknown Player") is None
     assert who("25921", None) is None
+
+
+def _event(home: tuple[str, str], away: tuple[str, str]) -> dict:
+    def side(where: str, team: tuple[str, str]) -> dict:
+        return {"homeAway": where, "score": "0", "team": {"id": team[0], "color": team[1]}}
+
+    return {
+        "events": [
+            {
+                "id": "1",
+                "date": "2026-10-24T14:35Z",
+                "competitions": [
+                    {
+                        "competitors": [side("home", home), side("away", away)],
+                        "status": {
+                            "type": {"name": "STATUS_SCHEDULED", "state": "pre"},
+                            "period": 0,
+                        },
+                    }
+                ],
+            }
+        ]
+    }
+
+
+def test_club_colours_replace_espn_ones() -> None:
+    """Toulouse in red and Bordeaux-Bègles in bordeaux, not ESPN's black and navy."""
+    (match,) = parse_scoreboard(_event(("25922", "000000"), ("143737", "000099")), "270559")
+    assert (match.home.color, match.away.color) == ("C8102E", "7A1E3D")
+
+
+def test_away_team_switches_colour_on_clash() -> None:
+    """Toulouse - Toulon: both red, Toulon plays in black; other leagues keep ESPN's."""
+    (match,) = parse_scoreboard(_event(("25922", "000000"), ("25986", "CC0000")), "270559")
+    assert (match.home.color, match.away.color) == ("C8102E", "111111")
+    (match,) = parse_scoreboard(_event(("1", "CC0000"), ("2", "CC0000")), "270557")
+    assert match.away.color == "CC0000"
