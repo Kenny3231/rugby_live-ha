@@ -23,7 +23,16 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
-from .api import EspnClient, EspnError, lnr_players, names_match, player_photo
+from .api import (
+    EPCR_COMPS,
+    EspnClient,
+    EspnError,
+    epcr_lineup,
+    lineup_photo,
+    lnr_players,
+    names_match,
+    player_photo,
+)
 from .const import (
     ANIMATED_EVENTS,
     ANIMATION_QUEUE_MAX,
@@ -49,13 +58,14 @@ from .const import (
     EVENT_REVOKED,
     FIXTURE_DAYS,
     FIXTURE_REFRESH,
+    LINEUP_REFRESH,
     MAX_DELAY,
     PLAYERS_REFRESH,
     SIGNAL_EVENT,
     STORE_KEY,
     STORE_VERSION,
 )
-from .models import LIVE_STATUSES, LnrPlayer, Match, MatchStatus, Play, PlayType
+from .models import LIVE_STATUSES, Match, MatchStatus, Play, PlayerPhoto, PlayType
 from .timeline import Change, MatchTimeline, TimelineEvent, Visible
 
 _LOGGER = logging.getLogger(__name__)
@@ -124,8 +134,10 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         self.matches: dict[str, Match] = {}  # current scoreboards (today / next match day)
         self.fixtures: dict[str, Match] = {}  # FIXTURE_DAYS ahead
         self.channels: dict[str, str] = {}  # match id -> TV channel (broadcast calendar)
-        self.players: list[LnrPlayer] = []  # LNR photos, refreshed daily
+        self.players: list[PlayerPhoto] = []  # LNR photos, refreshed daily
         self._players_at: datetime | None = None
+        self.lineups: dict[str, list[PlayerPhoto]] = {}  # cup match id -> EPCR photos
+        self._lineups_at: dict[str, datetime] = {}
         self.timelines: dict[str, MatchTimeline] = {}
         self._seen_this_run: set[str] = set()
         self._finished_at: dict[str, datetime] = {}
@@ -184,6 +196,11 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
                     self._ingest_match(match, now)
             self.matches = fresh
             for match in fresh.values():
+                if self._wants_lineup(match, now):
+                    self._lineups_at[match.id] = now
+                    self.config_entry.async_create_background_task(
+                        self.hass, self._async_load_lineup(match), f"{DOMAIN}_lineup"
+                    )
                 if self._wants_plays(match, now):
                     plays = await self.client.plays(match.league_id, match.id)
                     self._ingest_plays(match, plays, dt_util.utcnow())
@@ -275,6 +292,28 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         else:  # keep the previous list, retry in an hour
             self._players_at = dt_util.utcnow() - PLAYERS_REFRESH + timedelta(hours=1)
 
+    def _wants_lineup(self, match: Match, now: datetime) -> bool:
+        """Cup lineups (player photos): hourly in the 2 days before kickoff, as they can
+        change late; once the match is on, only while still missing."""
+        if match.league_id not in EPCR_COMPS or match.state == "post":
+            return False
+        if match.kickoff - now > timedelta(days=2) or (
+            match.state == "in" and self.lineups.get(match.id)
+        ):
+            return False
+        at = self._lineups_at.get(match.id)
+        return at is None or now - at >= LINEUP_REFRESH
+
+    async def _async_load_lineup(self, match: Match) -> None:
+        if lineup := await epcr_lineup(async_get_clientsession(self.hass), match):
+            self.lineups[match.id] = lineup
+
+    def _photo(self, match: Match | None, team_id: str | None, player: str | None) -> str | None:
+        """EPCR lineup of the match first (cups: the 23 of the day, all clubs), else LNR."""
+        side = match.side_of(team_id) if match else None
+        lineup = self.lineups.get(match.id, []) if match else []
+        return lineup_photo(lineup, side, player) or player_photo(self.players, team_id, player)
+
     async def _async_load_channels(self) -> None:
         """TV channels from the optional broadcast calendar: the event location of the
         calendar entry starting within 15 min of kickoff and naming one of the teams."""
@@ -306,6 +345,8 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
 
     def _prune(self) -> None:
         self.timelines = {k: v for k, v in self.timelines.items() if k in self.matches}
+        self.lineups = {k: v for k, v in self.lineups.items() if k in self.matches}
+        self._lineups_at = {k: v for k, v in self._lineups_at.items() if k in self.matches}
 
     def _interval(self, now: datetime) -> timedelta:
         opts = self.options
@@ -406,7 +447,7 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
         if not player:
             return anim
         anim["player"] = player
-        anim["player_photo"] = player_photo(self.players, anim.get("team_id"), player)
+        anim["player_photo"] = self._photo(match, anim.get("team_id"), player)
         return anim
 
     def _background(self, event_type: str) -> list[str]:
@@ -467,7 +508,7 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
             "side": match.side_of(ev.team_id),
             "player": player,
             "athlete_id": ev.athlete_id,
-            "player_photo": player_photo(self.players, ev.team_id, player),
+            "player_photo": self._photo(match, ev.team_id, player),
             "minute": ev.minute,
             "period": ev.period,
         }

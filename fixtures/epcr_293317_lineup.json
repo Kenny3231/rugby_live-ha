@@ -1,0 +1,98 @@
+{
+ "data": {
+  "id": 293317,
+  "date": "2026-10-16T19:00:00.000Z",
+  "homeTeam": {
+   "id": 4293,
+   "name": "Gloucester Rugby",
+   "players": [
+    {
+     "id": 124901,
+     "firstName": "Arthur",
+     "lastName": "Clark",
+     "known": "Arthur Clark",
+     "imageUrl": "https://media-cdn.cortextech.io/1GhMIM/1BSdBWIjHGF4pa/bfbd9f7c-0b4f-4191-b392-a2e05ae76704.png",
+     "position": "second row"
+    },
+    {
+     "id": 123243,
+     "firstName": "Charlie",
+     "lastName": "Atkinson",
+     "known": "Charlie Atkinson",
+     "imageUrl": "https://media-cdn.cortextech.io/1GhMIM/1BSdBWIjHGF4pa/9ad10c69-3e94-4be1-b558-e9c5b0d1f139.png",
+     "position": "fly half"
+    },
+    {
+     "id": 109648,
+     "firstName": "Seb",
+     "lastName": "Atkinson",
+     "known": "Seb Atkinson",
+     "imageUrl": "https://media-cdn.cortextech.io/1GhMIM/1BSdBWIjHGF4pa/7156e845-31e4-4b96-8f4e-099ee1525a47.png",
+     "position": "inside centre"
+    },
+    {
+     "id": 189971,
+     "firstName": "Ciaran",
+     "lastName": "Knight",
+     "known": "Ciaran Knight",
+     "imageUrl": "https://media-cdn.cortextech.io/1GhMIM/1BSdBWIjHGF4tf/aa743b3d-a97b-4f4d-a82c-9a990200689d.png",
+     "position": "tighthead prop"
+    },
+    {
+     "id": 254908,
+     "firstName": "Will",
+     "lastName": "Knight",
+     "known": "Will Knight",
+     "imageUrl": "https://media-cdn.cortextech.io/1GhMIM/1BSdBWIjHGF4pa/934bead3-1729-44f7-909a-cc73380a4c02.png",
+     "position": "sub 8"
+    }
+   ]
+  },
+  "awayTeam": {
+   "id": 5979,
+   "name": "Bordeaux-Begles",
+   "players": [
+    {
+     "id": 237223,
+     "firstName": "Louis",
+     "lastName": "Bielle-Biarrey",
+     "known": "Louis Bielle-Biarrey",
+     "imageUrl": "https://media-cdn.cortextech.io/1GhMIM/1BSdBWIjCjnONz/cf52f732-f3cc-44c5-9ae6-f3d3c05048cf.png",
+     "position": "left wing"
+    },
+    {
+     "id": 100043,
+     "firstName": "Maxime",
+     "lastName": "Lucu",
+     "known": "Maxime Lucu",
+     "imageUrl": "https://media-cdn.cortextech.io/1GhMIM/1BSdBWIjHGF4te/3a69ee45-d1f8-4b5c-adb5-6ee728e761ec.png",
+     "position": "fly half"
+    },
+    {
+     "id": 229647,
+     "firstName": "Martin",
+     "lastName": "Page-Relo",
+     "known": "Martin Page-Relo",
+     "imageUrl": "https://media-cdn.cortextech.io/1GhMIM/1BSdBWIjCjnONz/760fc8cc-1204-442a-88a4-65823a4ac7dc.png",
+     "position": "scrum half"
+    },
+    {
+     "id": 222388,
+     "firstName": "Yoram",
+     "lastName": "Moefana",
+     "known": "Yoram Moefana",
+     "imageUrl": "https://media-cdn.cortextech.io/1GhMIM/1BSdBWIjCjnONz/ecbbad6b-60d8-43b4-927e-ef5346cca4b1.png",
+     "position": "inside centre"
+    },
+    {
+     "id": 1,
+     "firstName": "Sans",
+     "lastName": "Photo",
+     "known": "Sans Photo",
+     "imageUrl": null,
+     "position": "sub 9"
+    }
+   ]
+  }
+ }
+}

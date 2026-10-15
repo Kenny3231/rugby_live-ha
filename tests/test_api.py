@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 from custom_components.rugby_live.api import (
+    epcr_season,
+    find_epcr_match,
+    lineup_photo,
     names_match,
+    parse_epcr_lineup,
     parse_lnr_config,
     parse_lnr_players,
     parse_plays,
@@ -15,7 +20,7 @@ from custom_components.rugby_live.api import (
     player_photo,
     team_logo,
 )
-from custom_components.rugby_live.models import MatchStatus, PlayType
+from custom_components.rugby_live.models import Match, MatchStatus, PlayType, Team
 
 FIXTURES = Path(__file__).parents[1] / "fixtures"
 
@@ -151,3 +156,56 @@ def test_away_team_switches_colour_on_clash() -> None:
     assert (match.home.color, match.away.color) == ("C8102E", "111111")
     (match,) = parse_scoreboard(_event(("1", "CC0000"), ("2", "CC0000")), "270557")
     assert match.away.color == "CC0000"
+
+
+def _cup_match(home: str, away: str, kickoff: str) -> Match:
+    return Match(
+        id="1",
+        league_id="271937",
+        kickoff=datetime.fromisoformat(kickoff),
+        home=Team(id="h", name=home),
+        away=Team(id="a", name=away),
+        home_score=0,
+        away_score=0,
+        status=MatchStatus.SCHEDULED,
+        state="pre",
+        period=0,
+    )
+
+
+def test_epcr_season() -> None:
+    assert epcr_season(datetime(2026, 10, 18, tzinfo=UTC)) == 202601
+    assert epcr_season(datetime(2026, 5, 23, tzinfo=UTC)) == 202501  # 2025-26 final
+
+
+def test_find_epcr_match_by_kickoff_and_name() -> None:
+    data = load("epcr_matches_2026-10-16.json")
+    # ESPN names of real matches of the round; two kick off at 12:00 on the 17th.
+    cases = {
+        ("Stade Toulousain", "Exeter Chiefs", "2026-10-18T14:15:00+00:00"): 293327,
+        ("Bulls", "Stade Francais Paris", "2026-10-17T12:00:00+00:00"): 293325,
+        ("Sale Sharks", "Glasgow Warriors", "2026-10-17T12:00:00+00:00"): 293319,
+        ("Northampton Saints", "Cardiff Blues", "2026-10-18T16:30:00+00:00"): 293328,
+        ("Gloucester Rugby", "Bordeaux Begles", "2026-10-16T19:00:00+00:00"): 293317,
+    }
+    for (home, away, kickoff), expected in cases.items():
+        assert find_epcr_match(data, _cup_match(home, away, kickoff)) == expected
+    # Right teams, wrong day: not the same match.
+    later = _cup_match("Stade Toulousain", "Exeter Chiefs", "2026-10-25T14:15:00+00:00")
+    assert find_epcr_match(data, later) is None
+
+
+def test_lineup_photo_from_epcr_lineup() -> None:
+    lineup = parse_epcr_lineup(load("epcr_293317_lineup.json"))
+    assert len(lineup) == 9  # the player without image is dropped
+
+    def who(side: str | None, name: str) -> str | None:
+        url = lineup_photo(lineup, side, name)
+        return url.rsplit("/", 1)[-1][:8] if url else None
+
+    assert who("away", "Louis Bielle-Biarrey") is not None
+    assert who("away", "Maxime Lucu") is not None
+    assert who("home", "Maxime Lucu") is None  # other side
+    assert who("home", "Seb Atkinson") != who("home", "Charlie Atkinson")
+    assert who("home", "Atkinson") is None  # two Atkinsons: ambiguous, logo shown
+    assert who(None, "Maxime Lucu") is None

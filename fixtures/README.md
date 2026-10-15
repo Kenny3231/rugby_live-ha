@@ -4,6 +4,8 @@
 |---|---|---|
 | `top14_604399_plays.json` | **Réel**, tronqué (10 plays marqueurs + 1 remplacement sur 38) | Tests du parseur `api.py`, du moteur de retard, serveur de rejeu |
 | `top14_scoreboard_2026-10-10.json` | **Réel**, tronqué (2 matchs sur 6, champs utiles) | Tests du scoreboard : match `in` avec `details`, match `pre` sans play-by-play |
+| `epcr_matches_2026-10-16.json` | **Réel**, tronqué (Champions Cup, 1re journée 2026-27, id/date/équipes) | Rapprochement d'un match ESPN avec le flux EPCR (InCrowd) |
+| `epcr_293317_lineup.json` | **Réel**, tronqué (Gloucester–Bordeaux-Bègles, 9 joueurs + 1 sans photo ajouté) | Photos des joueurs des coupes (compositions EPCR) |
 | `synthetic_cards.json` | **Synthétique** (cartons jaune/rouge, drop goal) | Cartons jaunes (durée 10 min), compteurs ; **à remplacer par une capture réelle au jalon M6** |
 
 Points à garder en tête :

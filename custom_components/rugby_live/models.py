@@ -87,10 +87,10 @@ class Play:
 
 
 @dataclass(frozen=True, slots=True)
-class LnrPlayer:
-    """A Top 14 player from the LNR site, for his cut-out photo."""
+class PlayerPhoto:
+    """A player's cut-out photo: LNR site (Top 14) or EPCR match lineup (cups)."""
 
-    club: str  # LNR club slug, as in api.LNR_SLUGS
+    club: str  # LNR club slug (api.LNR_SLUGS), or "home" / "away" in an EPCR lineup
     first: frozenset[str]  # normalised name words
     last: frozenset[str]
     photo: str

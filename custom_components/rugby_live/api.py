@@ -17,7 +17,7 @@ from typing import Any
 
 import aiohttp
 
-from .models import LnrPlayer, Match, MatchStatus, Play, PlayType, Team
+from .models import Match, MatchStatus, Play, PlayerPhoto, PlayType, Team
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -328,7 +328,7 @@ def parse_lnr_config(html: str) -> tuple[str, str] | None:
     return f"{host}/indexes/{index}/search", key
 
 
-def parse_lnr_players(data: dict[str, Any]) -> list[LnrPlayer]:
+def parse_lnr_players(data: dict[str, Any]) -> list[PlayerPhoto]:
     """Players with a photo from a Meilisearch response."""
     players = []
     for hit in data.get("hits") or []:
@@ -337,7 +337,7 @@ def parse_lnr_players(data: dict[str, Any]) -> list[LnrPlayer]:
         club = ((hit.get("club") or {}).get("url") or "").rsplit("/", 1)[-1]
         if photo and club:
             players.append(
-                LnrPlayer(
+                PlayerPhoto(
                     club=club,
                     first=frozenset(_words(hit.get("first_name") or "")),
                     last=frozenset(_words(hit.get("last_name") or "")),
@@ -348,23 +348,27 @@ def parse_lnr_players(data: dict[str, Any]) -> list[LnrPlayer]:
 
 
 def player_photo(
-    players: list[LnrPlayer], team_id: str | None, full_name: str | None
+    players: list[PlayerPhoto], team_id: str | None, full_name: str | None
 ) -> str | None:
     """Photo of an ESPN player. LNR adds middle names ('Hugo Domingo MIOTTI' for ESPN's
     'Domingo Miotti'): every ESPN word must appear in the LNR name, within the club when
     ESPN's team is a known Top 14 club, else league-wide. Ambiguous -> None (logo shown)."""
+    slug = LNR_SLUGS.get(team_id or "")
+    pool = [p for p in players if p.club == slug] if slug else players
+    return _photo(pool, full_name, bool(slug))
+
+
+def _photo(pool: list[PlayerPhoto], full_name: str | None, one_club: bool) -> str | None:
     words = _words(full_name or "")
     if not words:
         return None
-    slug = LNR_SLUGS.get(team_id or "")
-    pool = [p for p in players if p.club == slug] if slug else players
     hits = [p for p in pool if set(words) <= p.first | p.last]
-    if not hits and slug:  # nickname vs full first name ('Ollie' / 'Oliver'): surname only
+    if not hits and one_club:  # nickname vs full first name ('Ollie' / 'Oliver'): surname only
         hits = [p for p in pool if words[-1] in p.last]
     return hits[0].photo if len(hits) == 1 else None
 
 
-async def lnr_players(session: aiohttp.ClientSession) -> list[LnrPlayer]:
+async def lnr_players(session: aiohttp.ClientSession) -> list[PlayerPhoto]:
     """All Top 14 players with a photo; empty on any failure (photos are a bonus)."""
     headers = {"User-Agent": USER_AGENT}
     try:
@@ -388,4 +392,92 @@ async def lnr_players(session: aiohttp.ClientSession) -> list[LnrPlayer]:
             return parse_lnr_players(await resp.json(content_type=None))
     except (aiohttp.ClientError, TimeoutError, ValueError) as err:
         _LOGGER.debug("LNR players unavailable: %r", err)
+        return []
+
+
+# ------------------------------------------------------------------ EPCR lineups
+# The EPCR site (Champions Cup, Challenge Cup) reads the InCrowd feed (docs/01): each
+# match carries both lineups (the 23 of the day) with cut-out photos, published about
+# two days before kickoff. Photos are hot-linked only, like the LNR ones.
+
+EPCR_MATCHES = "https://rugby-union-feeds.incrowdsports.com/v1/matches"
+EPCR_PARAMS = {"clientId": "EPCR", "provider": "rugbyviz"}
+EPCR_COMPS = {"271937": 1008, "272073": 1026}  # ESPN league id -> InCrowd compId
+
+
+def epcr_season(kickoff: datetime) -> int:
+    """InCrowd season id: 202601 for 2026-27 (verified for 2025-26 and 2026-27)."""
+    return (kickoff.year if kickoff.month >= 7 else kickoff.year - 1) * 100 + 1
+
+
+def find_epcr_match(data: dict[str, Any], match: Match) -> int | None:
+    """InCrowd id of an ESPN match: same kickoff (15 min) and one team name in common
+    ('Stade Toulousain' / 'Toulouse'); None when absent or ambiguous."""
+    hits = []
+    for raw in data.get("data") or []:
+        try:
+            kickoff = datetime.fromisoformat(str(raw["date"]).replace("Z", "+00:00"))
+        except KeyError, ValueError:
+            continue
+        home = (raw.get("homeTeam") or {}).get("name") or ""
+        away = (raw.get("awayTeam") or {}).get("name") or ""
+        if abs((kickoff - match.kickoff).total_seconds()) <= 900 and (
+            names_match(home, match.home.name) or names_match(away, match.away.name)
+        ):
+            hits.append(raw.get("id"))
+    return hits[0] if len(hits) == 1 and hits[0] else None
+
+
+def parse_epcr_lineup(data: dict[str, Any]) -> list[PlayerPhoto]:
+    """Players with a photo from an InCrowd match, club = "home" / "away"."""
+    match = data.get("data") or {}
+    players = []
+    for side in ("home", "away"):
+        for raw in (match.get(f"{side}Team") or {}).get("players") or []:
+            if photo := raw.get("imageUrl"):
+                players.append(
+                    PlayerPhoto(
+                        club=side,
+                        first=frozenset(_words(raw.get("firstName") or "")),
+                        last=frozenset(_words(raw.get("lastName") or "")),
+                        photo=photo,
+                    )
+                )
+    return players
+
+
+def lineup_photo(lineup: list[PlayerPhoto], side: str | None, full_name: str | None) -> str | None:
+    """Photo of an ESPN player from the EPCR lineup of his match (side: home / away)."""
+    return _photo([p for p in lineup if p.club == side], full_name, True) if side else None
+
+
+async def epcr_lineup(session: aiohttp.ClientSession, match: Match) -> list[PlayerPhoto]:
+    """Lineup photos of a cup match; empty when unknown or on any failure (a bonus)."""
+    comp = EPCR_COMPS.get(match.league_id)
+    if comp is None:
+        return []
+    headers = {"User-Agent": USER_AGENT}
+    params = {**EPCR_PARAMS, "compId": comp, "season": epcr_season(match.kickoff)}
+    try:
+        async with session.get(
+            EPCR_MATCHES, params=params, headers=headers, timeout=TIMEOUT
+        ) as resp:
+            if resp.status >= 400:
+                _LOGGER.debug("EPCR matches HTTP %s", resp.status)
+                return []
+            epcr_id = find_epcr_match(await resp.json(content_type=None), match)
+        if epcr_id is None:
+            return []
+        async with session.get(
+            f"{EPCR_MATCHES}/{epcr_id}",
+            params={**EPCR_PARAMS, "images": "true"},
+            headers=headers,
+            timeout=TIMEOUT,
+        ) as resp:
+            if resp.status >= 400:
+                _LOGGER.debug("EPCR match HTTP %s", resp.status)
+                return []
+            return parse_epcr_lineup(await resp.json(content_type=None))
+    except (aiohttp.ClientError, TimeoutError, ValueError) as err:
+        _LOGGER.debug("EPCR lineup unavailable: %r", err)
         return []

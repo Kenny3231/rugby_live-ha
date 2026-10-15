@@ -1,0 +1,160 @@
+{
+ "data": [
+  {
+   "id": 293317,
+   "date": "2026-10-16T19:00:00.000Z",
+   "compId": 1008,
+   "homeTeam": {
+    "id": 4293,
+    "name": "Gloucester Rugby"
+   },
+   "awayTeam": {
+    "id": 5979,
+    "name": "Bordeaux-Begles"
+   }
+  },
+  {
+   "id": 293319,
+   "date": "2026-10-17T12:00:00.000Z",
+   "compId": 1008,
+   "homeTeam": {
+    "id": 3964,
+    "name": "Sale Sharks"
+   },
+   "awayTeam": {
+    "id": 3098,
+    "name": "Glasgow Warriors"
+   }
+  },
+  {
+   "id": 293325,
+   "date": "2026-10-17T12:00:00.000Z",
+   "compId": 1008,
+   "homeTeam": {
+    "id": 5586,
+    "name": "Vodacom Bulls"
+   },
+   "awayTeam": {
+    "id": 4003,
+    "name": "Stade Francais Paris"
+   }
+  },
+  {
+   "id": 293318,
+   "date": "2026-10-17T14:15:00.000Z",
+   "compId": 1008,
+   "homeTeam": {
+    "id": 3094,
+    "name": "Clermont Auvergne"
+   },
+   "awayTeam": {
+    "id": 5356,
+    "name": "Leinster Rugby"
+   }
+  },
+  {
+   "id": 293322,
+   "date": "2026-10-17T14:15:00.000Z",
+   "compId": 1008,
+   "homeTeam": {
+    "id": 3994,
+    "name": "DHL Stormers"
+   },
+   "awayTeam": {
+    "id": 4581,
+    "name": "Bristol Bears"
+   }
+  },
+  {
+   "id": 293320,
+   "date": "2026-10-17T16:30:00.000Z",
+   "compId": 1008,
+   "homeTeam": {
+    "id": 5483,
+    "name": "Connacht Rugby"
+   },
+   "awayTeam": {
+    "id": 2581,
+    "name": "Saracens"
+   }
+  },
+  {
+   "id": 293321,
+   "date": "2026-10-17T16:30:00.000Z",
+   "compId": 1008,
+   "homeTeam": {
+    "id": 5872,
+    "name": "La Rochelle"
+   },
+   "awayTeam": {
+    "id": 5092,
+    "name": "10bet Lions"
+   }
+  },
+  {
+   "id": 293323,
+   "date": "2026-10-17T19:00:00.000Z",
+   "compId": 1008,
+   "homeTeam": {
+    "id": 4377,
+    "name": "Munster Rugby"
+   },
+   "awayTeam": {
+    "id": 1405,
+    "name": "Racing 92"
+   }
+  },
+  {
+   "id": 293324,
+   "date": "2026-10-17T19:00:00.000Z",
+   "compId": 1008,
+   "homeTeam": {
+    "id": 2448,
+    "name": "Bath Rugby"
+   },
+   "awayTeam": {
+    "id": 3528,
+    "name": "Montpellier"
+   }
+  },
+  {
+   "id": 293326,
+   "date": "2026-10-18T12:00:00.000Z",
+   "compId": 1008,
+   "homeTeam": {
+    "id": 6198,
+    "name": "Pau"
+   },
+   "awayTeam": {
+    "id": 1711,
+    "name": "Leicester Tigers"
+   }
+  },
+  {
+   "id": 293327,
+   "date": "2026-10-18T14:15:00.000Z",
+   "compId": 1008,
+   "homeTeam": {
+    "id": 4188,
+    "name": "Toulouse"
+   },
+   "awayTeam": {
+    "id": 1574,
+    "name": "Exeter Chiefs"
+   }
+  },
+  {
+   "id": 293328,
+   "date": "2026-10-18T16:30:00.000Z",
+   "compId": 1008,
+   "homeTeam": {
+    "id": 3436,
+    "name": "Northampton Saints"
+   },
+   "awayTeam": {
+    "id": 4471,
+    "name": "Cardiff Rugby"
+   }
+  }
+ ]
+}

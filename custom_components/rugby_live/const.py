@@ -69,6 +69,7 @@ ENV_BASE_URL = "RUGBY_LIVE_ESPN_BASE_URL"  # dev only: tools/replay_server.py
 FIXTURE_DAYS = 14
 FIXTURE_REFRESH = timedelta(hours=6)
 PLAYERS_REFRESH = timedelta(hours=24)  # LNR player photos
+LINEUP_REFRESH = timedelta(hours=1)  # EPCR lineups (cup player photos)
 MAX_DELAY = 300
 EVENTS_ATTRIBUTE_CAP = 60
 FIXTURES_ATTRIBUTE_PAST = timedelta(days=4)  # results kept in the fixtures attribute
