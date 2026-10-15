@@ -123,6 +123,8 @@ export function watchedChanged(oldHass: Hass | undefined, hass: Hass | undefined
 }
 
 export const deviceSelector = { device: { filter: { integration: 'rugby_live' } } };
+/** Favourite teams and "Match suivi": the only devices with binary sensors. */
+export const teamSelector = { device: { entity: { integration: 'rugby_live', domain: 'binary_sensor' } } };
 
 // Theme-aware base for the small cards (HA variables: light and dark themes).
 export const baseStyles = css`

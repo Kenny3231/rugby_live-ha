@@ -16,7 +16,7 @@
 ### 0. `rugby-live-direct-card` (faite le 11/10, demande de David)
 
 - Vue « Direct » plein écran (vue Panneau) ou en 16:9 dans une section : bandeau des matchs, tableau de score façon TV, détail des points, bonus Top 14, animations des actions (photos LNR, fonds choisis dans les options de l'intégration, scène des cartons).
-- Retrouve ses entités par leur clé de traduction sur l'appareil choisi (`device`, défaut : « Match suivi » ; `favorite`, défaut : première équipe favorite).
+- Retrouve ses entités par leur clé de traduction sur l'appareil choisi (`device` : une équipe favorite — son match du moment, sinon son prochain match, toutes compétitions — ou « Match suivi » ; défaut : première équipe favorite). Les animations (appareil « Match suivi ») ne s'affichent que si elles concernent le match affiché (`match_id`). Demande de David du 15/10 : un seul choix au lieu de deux appareils.
 - Options (éditeur visuel `getConfigForm`) : `ticker`, `watermark`, `breakdown`, `bonus`, `animations`, `force_motion`.
 - Textes en français seulement pour l'instant.
 

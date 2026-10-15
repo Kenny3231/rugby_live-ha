@@ -1,18 +1,19 @@
 // rugby-live-direct-card: full-screen "Direct" view (scoreboard, ticker, event animations).
 // Port of the button-card template of examples/dashboard.yaml; entities are found by their
-// translation key on the chosen device, so the card works whatever the language or names.
+// translation key on the chosen device (a favourite team, or "Match suivi"), so the card
+// works whatever the language or names.
 import { LitElement, html, nothing, type PropertyValues, type TemplateResult } from 'lit';
 import { keyed } from 'lit/directives/keyed.js';
 import { directStyles } from './styles';
 import type { Hass, HassEntity } from './hass';
 import {
-  BREAKDOWN, COMP, LIVE, STATUS, hhmm, hide, ink, logo, longDate, usable, type Attrs, type Counters,
+  BREAKDOWN, COMP, LIVE, RugbyEntities, STATUS, hhmm, hide, ink, logo, longDate, teamSelector, usable,
+  type Attrs, type Counters,
 } from './common';
 
 export interface DirectConfig {
   type: string;
-  device?: string; // followed match device (default: "Match suivi")
-  favorite?: string; // favourite team device: next match, special animation videos
+  device?: string; // favourite team or "Match suivi" device (default: first favourite team)
   ticker?: boolean;
   watermark?: boolean;
   breakdown?: boolean;
@@ -66,8 +67,7 @@ export class RugbyLiveDirectCard extends LitElement {
   static getConfigForm() {
     const bool = (name: string) => ({ name, selector: { boolean: {} } });
     const labels: Record<string, string> = {
-      device: 'Match suivi (appareil)',
-      favorite: 'Équipe favorite (prochain match, vidéos spéciales)',
+      device: 'Équipe favorite ou Match suivi',
       ticker: 'Bandeau des autres matchs',
       watermark: 'Logo de la compétition en filigrane',
       breakdown: 'Détail des points (essais, transformations…)',
@@ -77,13 +77,13 @@ export class RugbyLiveDirectCard extends LitElement {
     };
     return {
       schema: [
-        { name: 'device', selector: { device: { filter: { integration: 'rugby_live' } } } },
-        { name: 'favorite', selector: { device: { filter: { integration: 'rugby_live' } } } },
+        { name: 'device', selector: teamSelector },
         { type: 'grid', name: '', schema: ['ticker', 'watermark', 'breakdown', 'bonus', 'animations', 'force_motion'].map(bool) },
       ],
       computeLabel: (s: { name: string }) => labels[s.name],
-      computeHelper: (s: { name: string }) =>
-        s.name === 'device' || s.name === 'favorite' ? 'Vide : choisi automatiquement.' : undefined,
+      computeHelper: (s: { name: string }) => s.name === 'device'
+        ? "Équipe à afficher : une équipe favorite (son match du moment, sinon son prochain match, toutes compétitions) ou « Match suivi » (le match choisi dans son sélecteur). Vide : première équipe favorite."
+        : undefined,
     };
   }
 
@@ -99,23 +99,21 @@ export class RugbyLiveDirectCard extends LitElement {
     return { ...DEFAULTS, ...this._config };
   }
 
-  // Entities of the integration, found by translation key on their device.
+  // Entities of the integration, found by translation key on their device. Animations only
+  // exist on "Match suivi": a team's screen shows them when they are about its match.
   private _ids() {
-    const all = Object.values(this.hass?.entities ?? {}).filter((e) => e.platform === 'rugby_live');
-    const device = this._config.device || all.find((e) => e.translation_key === 'animation')?.device_id;
-    const favorite =
-      this._config.favorite || all.find((e) => e.translation_key === 'next_match' && e.device_id !== device &&
-        all.some((o) => o.device_id === e.device_id && o.translation_key === 'score'))?.device_id;
-    const pick = (dev: string | null | undefined, key: string) =>
-      dev ? all.find((e) => e.device_id === dev && e.translation_key === key)?.entity_id : undefined;
+    const ents = new RugbyEntities(this.hass!);
+    const followed = ents.followed();
+    const device = ents.resolve(this._config.device) || ents.teams()[0] || followed;
+    const nextOf = device === followed ? ents.teams()[0] : device; // "Match suivi" has no next match
     return {
-      status: pick(device, 'match_status'),
-      score: pick(device, 'score'),
-      minute: pick(device, 'minute'),
-      last: pick(device, 'last_event'),
-      anim: pick(device, 'animation'),
-      next: pick(favorite, 'next_match'),
-      live: all.filter((e) => e.translation_key === 'live_matches').map((e) => e.entity_id),
+      status: ents.pick(device, 'match_status'),
+      score: ents.pick(device, 'score'),
+      minute: ents.pick(device, 'minute'),
+      last: ents.pick(device, 'last_event'),
+      anim: ents.pick(followed, 'animation'),
+      next: ents.pick(nextOf, 'next_match'),
+      live: ents.all.filter((e) => e.translation_key === 'live_matches').map((e) => e.entity_id),
     };
   }
 
@@ -137,7 +135,9 @@ export class RugbyLiveDirectCard extends LitElement {
     const s = status ? status.state : 'no_match';
     const sa: Attrs = status?.attributes ?? {};
     const a: Attrs = st(ids.score)?.attributes ?? {};
-    const anim = st(ids.anim);
+    const animAll = st(ids.anim);
+    const animMatch = animAll?.attributes.match_id;
+    const anim = !animMatch || animMatch === sa.match_id ? animAll : undefined;
     const next = st(ids.next);
     const favId: string | undefined = next?.attributes.team_id;
     const wm = c.watermark && WM[sa.competition]

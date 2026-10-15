@@ -808,7 +808,10 @@ var Pe = o`
 function $(e, t, n) {
 	return !e || !t || e.entities !== t.entities || n.some((n) => n && e.states[n] !== t.states[n]);
 }
-var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = o`
+var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = { device: { entity: {
+	integration: "rugby_live",
+	domain: "binary_sensor"
+} } }, Le = o`
   :host { display: block; }
   ha-card { padding: 16px; overflow: hidden; position: relative; }
   .rl-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px;
@@ -823,22 +826,22 @@ var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = o`
   .rl-muted { color: var(--secondary-text-color); }
   .rl-fav { font-weight: 700; }
   @media (prefers-reduced-motion: reduce) { .rl-live, .rl-flash { animation: none; } }
-`, Le, Re = {
+`, Re, ze = {
 	ticker: !0,
 	watermark: !0,
 	breakdown: !0,
 	bonus: !0,
 	animations: !0,
 	force_motion: !1
-}, ze = {
+}, Be = {
 	top14: "Top 14",
 	champions_cup: "Champions Cup",
 	challenge_cup: "Challenge Cup"
-}, Be = {
+}, Ve = {
 	first_half: "1re MT",
 	second_half: "2e MT",
 	extra_time: "PROLONG."
-}, Ve = [
+}, He = [
 	"dim.",
 	"lun.",
 	"mar.",
@@ -846,7 +849,7 @@ var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = o`
 	"jeu.",
 	"ven.",
 	"sam."
-], He = {
+], Ue = {
 	try: "ESSAI !",
 	conversion: "TRANSFORMATION",
 	penalty_goal: "PÉNALITÉ",
@@ -859,19 +862,19 @@ var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = o`
 	extra_time: "PROLONGATIONS",
 	full_time: "FIN DU MATCH",
 	revoked: "ACTION ANNULÉE"
-}, Ue = {
+}, We = {
 	try: "Essai",
 	conversion: "Transformation",
 	penalty_goal: "Pénalité",
 	drop_goal: "Drop",
 	yellow_card: "Carton jaune",
 	red_card: "Carton rouge"
-}, We = [
+}, Ge = [
 	"try",
 	"conversion",
 	"penalty_goal",
 	"drop_goal"
-], Ge = class extends U {
+], Ke = class extends U {
 	constructor(...e) {
 		super(...e), this.isPanel = !1, this._config = { type: "custom:rugby-live-direct-card" }, this._score = {
 			key: "",
@@ -891,15 +894,14 @@ var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = o`
 		this._config = e;
 	}
 	static getStubConfig() {
-		return { ...Re };
+		return { ...ze };
 	}
 	static getConfigForm() {
 		let e = (e) => ({
 			name: e,
 			selector: { boolean: {} }
 		}), t = {
-			device: "Match suivi (appareil)",
-			favorite: "Équipe favorite (prochain match, vidéos spéciales)",
+			device: "Équipe favorite ou Match suivi",
 			ticker: "Bandeau des autres matchs",
 			watermark: "Logo de la compétition en filigrane",
 			breakdown: "Détail des points (essais, transformations…)",
@@ -908,30 +910,23 @@ var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = o`
 			force_motion: "Animer même si l'appareil demande moins d'animations"
 		};
 		return {
-			schema: [
-				{
-					name: "device",
-					selector: { device: { filter: { integration: "rugby_live" } } }
-				},
-				{
-					name: "favorite",
-					selector: { device: { filter: { integration: "rugby_live" } } }
-				},
-				{
-					type: "grid",
-					name: "",
-					schema: [
-						"ticker",
-						"watermark",
-						"breakdown",
-						"bonus",
-						"animations",
-						"force_motion"
-					].map(e)
-				}
-			],
+			schema: [{
+				name: "device",
+				selector: Ie
+			}, {
+				type: "grid",
+				name: "",
+				schema: [
+					"ticker",
+					"watermark",
+					"breakdown",
+					"bonus",
+					"animations",
+					"force_motion"
+				].map(e)
+			}],
 			computeLabel: (e) => t[e.name],
-			computeHelper: (e) => e.name === "device" || e.name === "favorite" ? "Vide : choisi automatiquement." : void 0
+			computeHelper: (e) => e.name === "device" ? "Équipe à afficher : une équipe favorite (son match du moment, sinon son prochain match, toutes compétitions) ou « Match suivi » (le match choisi dans son sélecteur). Vide : première équipe favorite." : void 0
 		};
 	}
 	getCardSize() {
@@ -945,20 +940,20 @@ var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = o`
 	}
 	get cfg() {
 		return {
-			...Re,
+			...ze,
 			...this._config
 		};
 	}
 	_ids() {
-		let e = Object.values(this.hass?.entities ?? {}).filter((e) => e.platform === "rugby_live"), t = this._config.device || e.find((e) => e.translation_key === "animation")?.device_id, n = this._config.favorite || e.find((n) => n.translation_key === "next_match" && n.device_id !== t && e.some((e) => e.device_id === n.device_id && e.translation_key === "score"))?.device_id, r = (t, n) => t ? e.find((e) => e.device_id === t && e.translation_key === n)?.entity_id : void 0;
+		let e = new Q(this.hass), t = e.followed(), n = e.resolve(this._config.device) || e.teams()[0] || t, r = n === t ? e.teams()[0] : n;
 		return {
-			status: r(t, "match_status"),
-			score: r(t, "score"),
-			minute: r(t, "minute"),
-			last: r(t, "last_event"),
-			anim: r(t, "animation"),
-			next: r(n, "next_match"),
-			live: e.filter((e) => e.translation_key === "live_matches").map((e) => e.entity_id)
+			status: e.pick(n, "match_status"),
+			score: e.pick(n, "score"),
+			minute: e.pick(n, "minute"),
+			last: e.pick(n, "last_event"),
+			anim: e.pick(t, "animation"),
+			next: e.pick(r, "next_match"),
+			live: e.all.filter((e) => e.translation_key === "live_matches").map((e) => e.entity_id)
 		};
 	}
 	shouldUpdate(e) {
@@ -978,13 +973,13 @@ var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = o`
 	}
 	render() {
 		if (!this.hass) return R;
-		let e = this.cfg, t = this._ids(), n = (e) => e ? this.hass.states[e] : void 0, r = n(t.status), i = r ? r.state : "no_match", a = r?.attributes ?? {}, o = n(t.score)?.attributes ?? {}, s = n(t.anim), c = n(t.next), l = c?.attributes.team_id, u = e.watermark && ze[a.competition] ? I`<img class="rl-wm" src="/local/images/rugby/competitions/${encodeURIComponent(ze[a.competition])}.svg" @error=${J} />` : R, d = e.animations ? this._overlay(s, o, l) : R;
+		let e = this.cfg, t = this._ids(), n = (e) => e ? this.hass.states[e] : void 0, r = n(t.status), i = r ? r.state : "no_match", a = r?.attributes ?? {}, o = n(t.score)?.attributes ?? {}, s = n(t.anim), c = s?.attributes.match_id, l = !c || c === a.match_id ? s : void 0, u = n(t.next), d = u?.attributes.team_id, f = e.watermark && Be[a.competition] ? I`<img class="rl-wm" src="/local/images/rugby/competitions/${encodeURIComponent(Be[a.competition])}.svg" @error=${J} />` : R, p = e.animations ? this._overlay(l, o, d) : R;
 		return I`<ha-card class=${this.isPanel ? "rl-panelcard" : ""}>
       <div class="rl-box ${this.isPanel ? "rl-panel" : ""}">
         <div class="rl-wrap ${e.force_motion ? "" : "rl-calm"}">
-          ${u}${e.ticker ? this._ticker(a, t.live) : R}
-          <div class="rl-main">${this._main(i, a, o, c, s)}</div>
-          ${d}
+          ${f}${e.ticker ? this._ticker(a, t.live) : R}
+          <div class="rl-main">${this._main(i, a, o, u, l)}</div>
+          ${p}
         </div>
       </div>
     </ha-card>`;
@@ -994,7 +989,7 @@ var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = o`
 		if (n ||= t.flatMap((e) => this.hass.states[e]?.attributes.matches ?? []), !n.length) return R;
 		let r = n.map((e) => {
 			let t = new Date(e.kickoff);
-			return e.status === "scheduled" ? I`${e.home_name} – ${e.away_name} <b>${Ve[t.getDay()]} ${K(t)}</b>` : I`${e.home_name} <b>${e.home_score} - ${e.away_score}</b> ${e.away_name}
+			return e.status === "scheduled" ? I`${e.home_name} – ${e.away_name} <b>${He[t.getDay()]} ${K(t)}</b>` : I`${e.home_name} <b>${e.home_score} - ${e.away_score}</b> ${e.away_name}
             <span style="color:#f87171">${G.includes(e.status) ? e.minute || "" : "Fin"}</span>`;
 		}), i = r.map((e, t) => I`${t ? I`&nbsp;&nbsp;•&nbsp;&nbsp;` : R}${e}`), a = Math.max(25, r.length * 7);
 		return I`<div class="rl-tick"><div class="rl-tick-in" style="animation-duration:${a}s;animation-delay:-${(Date.now() / 1e3 % a).toFixed(1)}s">
@@ -1048,7 +1043,7 @@ var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = o`
 			g = I`<div class="rl-next"><small>PROCHAIN MATCH • ${W[a.competition] || ""}</small><b>${t}</b><br />
         ${q(e)} • ${K(e)}${a.channel ? ` • 📺 ${a.channel}` : ""}</div>`;
 		}
-		let _ = n.home_score ?? 0, v = n.away_score ?? 0, y = n.counters ?? {}, b = o && e !== "half_time" ? I`<span class="rl-live">LIVE</span><b>${u}</b><small>${Be[e] || ""}</small>` : I`<b>${e === "half_time" ? "MT" : e === "finished" ? "FIN" : ""}</b>
+		let _ = n.home_score ?? 0, v = n.away_score ?? 0, y = n.counters ?? {}, b = o && e !== "half_time" ? I`<span class="rl-live">LIVE</span><b>${u}</b><small>${Ve[e] || ""}</small>` : I`<b>${e === "half_time" ? "MT" : e === "finished" ? "FIN" : ""}</b>
           <small>${e === "half_time" ? "MI-TEMPS" : (Ae[e] || "").toUpperCase()}</small>`, x = (e) => this.cfg.breakdown ? je.filter(([t]) => e?.[t]).map(([t, n, r]) => I`<span><b>${e[t]}</b> ${e[t] > 1 ? r : n}</span>`) : R, S = (n, r, i, a) => {
 			if (!this.cfg.bonus || t.competition !== "top14") return R;
 			let o = n > r && i - a >= 3 ? "BONUS OFFENSIF" : n < r && r - n <= 5 ? "BONUS DÉFENSIF" : "";
@@ -1091,7 +1086,7 @@ var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = o`
 		}
 		let o = Date.now() - this._seen.t0;
 		if (isNaN(o) || o >= a) return R;
-		let s = i.team_id, c = !!s && s === t.home_id, l = r === "yellow_card" || r === "red_card", u = We.includes(r), d = !l && !u, f = c ? t.home_color : s ? t.away_color : null, p = c ? t.home_logo : s ? t.away_logo : null, m = r === "yellow_card" ? "#eab308" : r === "red_card" ? "#dc2626" : !d && f || "#334155", h = r === "yellow_card" ? "#111" : Y(m), g = `/local/rugby_live/anim/${n && s === n && u ? r + "_toulouse" : r}.mp4#t=${(o / 1e3 % 6).toFixed(1)}`, _ = He[r] || r, v = i.minute ? `${i.minute}'` : "", y = o / 1e3, b = i.background ?? [], x = [
+		let s = i.team_id, c = !!s && s === t.home_id, l = r === "yellow_card" || r === "red_card", u = Ge.includes(r), d = !l && !u, f = c ? t.home_color : s ? t.away_color : null, p = c ? t.home_logo : s ? t.away_logo : null, m = r === "yellow_card" ? "#eab308" : r === "red_card" ? "#dc2626" : !d && f || "#334155", h = r === "yellow_card" ? "#111" : Y(m), g = `/local/rugby_live/anim/${n && s === n && u ? r + "_toulouse" : r}.mp4#t=${(o / 1e3 % 6).toFixed(1)}`, _ = Ue[r] || r, v = i.minute ? `${i.minute}'` : "", y = o / 1e3, b = i.background ?? [], x = [
 			0,
 			.8,
 			1.6
@@ -1102,7 +1097,7 @@ var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = o`
 		], C = l || !b.includes("confetti") ? R : Array.from({ length: 36 }, (e, t) => I`<i class="rl-cf" style="left:${t * 37 % 100}%;width:${(.6 + t % 3 * .3).toFixed(1)}cqw;background:${S[t % 3]};animation-duration:${(3 + t % 5 * .6).toFixed(1)}s;animation-delay:-${(y + t * .53).toFixed(2)}s"></i>`), w = l ? I`<div class="rl-strobe"></div>${x}` : I`${b.includes("rays") ? I`<div class="rl-burst" style="animation-duration:${a}ms"></div><div class="rl-rays2"></div>` : R}
           ${b.includes("beams") ? I`<div class="rl-beam rl-l"></div><div class="rl-beam rl-r"></div>` : R}
           ${b.includes("rings") ? x : R}`, T = d ? null : i.player_photo, E = p && !d ? I`<img class="rl-ovlogo" src=${p} @error=${J} />` : R, D = l ? I`<div class="rl-card"></div>` : R, O = I`<div class="rl-ovtxt" style="--n:${_.length}">${_}</div>`, k = [
-			r === "revoked" && Ue[i.revoked_type],
+			r === "revoked" && We[i.revoked_type],
 			i.player || i.team_name,
 			v
 		].filter(Boolean).join(" • "), A = T ? I`<div class="rl-phw"><img class="rl-ph" src=${T} @error=${J} />${D}</div>
@@ -1123,14 +1118,14 @@ var Fe = { device: { filter: { integration: "rugby_live" } } }, Ie = o`
       ${w}${A}${C}${ee}</div>`);
 	}
 };
-Le = Ge, Le.styles = ke, Le.properties = {
+Re = Ke, Re.styles = ke, Re.properties = {
 	hass: { attribute: !1 },
 	isPanel: { attribute: !1 },
 	_config: { state: !0 }
 };
 //#endregion
 //#region src/fixtures-card.ts
-var Ke, qe = class extends U {
+var qe, Je = class extends U {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:rugby-live-fixtures-card" };
 	}
@@ -1219,11 +1214,11 @@ var Ke, qe = class extends U {
 		});
 	}
 };
-Ke = qe, Ke.properties = {
+qe = Je, qe.properties = {
 	hass: { attribute: !1 },
 	_config: { state: !0 }
-}, Ke.styles = [
-	Ie,
+}, qe.styles = [
+	Le,
 	Pe,
 	o`
     .rl-sec { margin: 12px 0 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary-color); }
@@ -1239,7 +1234,7 @@ Ke = qe, Ke.properties = {
 ];
 //#endregion
 //#region src/multiplex-card.ts
-var Je, Ye = class extends U {
+var Ye, Xe = class extends U {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:rugby-live-multiplex-card" };
 	}
@@ -1311,11 +1306,11 @@ var Je, Ye = class extends U {
     </div>`;
 	}
 };
-Je = Ye, Je.properties = {
+Ye = Xe, Ye.properties = {
 	hass: { attribute: !1 },
 	_config: { state: !0 }
-}, Je.styles = [
-	Ie,
+}, Ye.styles = [
+	Le,
 	Pe,
 	o`
     .rl-group + .rl-group { margin-top: 16px; }
@@ -1330,14 +1325,14 @@ Je = Ye, Je.properties = {
 ];
 //#endregion
 //#region src/scoreboard-card.ts
-var Xe, Ze = [
+var Ze, Qe = [
 	"match_status",
 	"score",
 	"minute",
 	"last_event",
 	"sin_bin",
 	"next_match"
-], Qe = class extends U {
+], $e = class extends U {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:rugby-live-scoreboard-card" };
 	}
@@ -1352,7 +1347,7 @@ var Xe, Ze = [
 	}
 	static getConfigForm() {
 		let e = {
-			device: "Équipe (appareil)",
+			device: "Équipe favorite ou Match suivi",
 			show_logos: "Logos",
 			show_counters: "Compteurs (essais, cartons…)",
 			compact: "Compact"
@@ -1360,7 +1355,7 @@ var Xe, Ze = [
 		return {
 			schema: [{
 				name: "device",
-				selector: Fe
+				selector: Ie
 			}, {
 				type: "grid",
 				name: "",
@@ -1374,7 +1369,7 @@ var Xe, Ze = [
 				}))
 			}],
 			computeLabel: (t) => e[t.name],
-			computeHelper: (e) => e.name === "device" ? "Vide : première équipe favorite." : void 0
+			computeHelper: (e) => e.name === "device" ? "Équipe favorite ou « Match suivi ». Vide : première équipe favorite." : void 0
 		};
 	}
 	getCardSize() {
@@ -1392,7 +1387,7 @@ var Xe, Ze = [
 	shouldUpdate(e) {
 		if (!e.has("hass") || e.size > 1 || !this.hass) return !0;
 		let t = new Q(this.hass), n = this._device(t);
-		return $(e.get("hass"), this.hass, Ze.map((e) => t.pick(n, e)));
+		return $(e.get("hass"), this.hass, Qe.map((e) => t.pick(n, e)));
 	}
 	render() {
 		if (!this.hass) return R;
@@ -1442,10 +1437,10 @@ var Xe, Ze = [
 		return Oe(e.last_changed, I`<div class="rl-flash" style="--c:${i || "var(--primary-color)"}"></div>`);
 	}
 };
-Xe = Qe, Xe.properties = {
+Ze = $e, Ze.properties = {
 	hass: { attribute: !1 },
 	_config: { state: !0 }
-}, Xe.styles = [Ie, o`
+}, Ze.styles = [Le, o`
     .rl-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; }
     /* Logo above the name, the name wraps: never cut, even in a narrow column (tablet). */
     .rl-team { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0;
@@ -1475,7 +1470,7 @@ Xe = Qe, Xe.properties = {
   `];
 //#endregion
 //#region src/timeline-card.ts
-var $e, et = {
+var et, tt = {
 	try: "mdi:rugby",
 	conversion: "mdi:numeric-2-circle",
 	penalty_goal: "mdi:numeric-3-circle",
@@ -1484,10 +1479,10 @@ var $e, et = {
 	red_card: "mdi:card",
 	sub_on: "mdi:swap-horizontal",
 	sub_off: "mdi:swap-horizontal"
-}, tt = {
+}, nt = {
 	yellow_card: "#eab308",
 	red_card: "#dc2626"
-}, nt = class extends U {
+}, rt = class extends U {
 	constructor(...e) {
 		super(...e), this._config = { type: "custom:rugby-live-timeline-card" };
 	}
@@ -1499,14 +1494,14 @@ var $e, et = {
 	}
 	static getConfigForm() {
 		let e = {
-			device: "Match (appareil)",
+			device: "Équipe favorite ou Match suivi",
 			show_subs: "Afficher les remplacements",
 			limit: "Nombre d'actions"
 		};
 		return {
 			schema: [{
 				name: "device",
-				selector: Fe
+				selector: Ie
 			}, {
 				type: "grid",
 				name: "",
@@ -1523,7 +1518,7 @@ var $e, et = {
 				}]
 			}],
 			computeLabel: (t) => e[t.name],
-			computeHelper: (e) => e.name === "device" ? "Vide : Match suivi." : void 0
+			computeHelper: (e) => e.name === "device" ? "Équipe favorite ou « Match suivi ». Vide : Match suivi." : void 0
 		};
 	}
 	getCardSize() {
@@ -1554,16 +1549,16 @@ var $e, et = {
       <div class="rl-h"><span>${W[i.competition] ? `${W[i.competition]} • ` : ""}${s}</span></div>
       ${a.length ? I`<ol class="rl-list">${a.map((e) => I`<li style="--c:${o(e.side)}">
             <span class="rl-min">${e.minute == null ? "" : `${e.minute}'`}</span>
-            <ha-icon icon=${et[e.type] || "mdi:circle-small"} style=${tt[e.type] ? `color:${tt[e.type]}` : ""}></ha-icon>
+            <ha-icon icon=${tt[e.type] || "mdi:circle-small"} style=${nt[e.type] ? `color:${nt[e.type]}` : ""}></ha-icon>
             <span class="rl-what"><b>${e.label}</b>${e.player ? I` — ${e.player}` : R}
               <small>${e.team || ""}</small></span></li>`)}</ol>` : I`<div class="rl-empty">Aucune action pour le moment</div>`}
     </ha-card>`;
 	}
 };
-$e = nt, $e.properties = {
+et = rt, et.properties = {
 	hass: { attribute: !1 },
 	_config: { state: !0 }
-}, $e.styles = [Ie, o`
+}, et.styles = [Le, o`
     .rl-list { list-style: none; margin: 0; padding: 0; }
     .rl-list li { display: grid; grid-template-columns: 36px 24px minmax(0, 1fr); align-items: center; gap: 10px;
       padding: 7px 0 7px 10px; border-left: 4px solid var(--c); border-top: 1px solid var(--divider-color); }
@@ -1575,42 +1570,51 @@ $e = nt, $e.properties = {
   `];
 //#endregion
 //#region src/main.ts
-var rt = [
+var it = [
 	[
 		"rugby-live-direct-card",
-		Ge,
+		Ke,
 		"Rugby Live – Direct",
 		"Tableau de score plein écran, bandeau des matchs et animations des actions (essais, cartons…)."
 	],
 	[
 		"rugby-live-scoreboard-card",
-		Qe,
+		$e,
 		"Rugby Live – Score",
 		"Score d'une équipe favorite : match en cours ou prochain match, compteurs, cartons."
 	],
 	[
 		"rugby-live-multiplex-card",
-		Ye,
+		Xe,
 		"Rugby Live – Multiplex",
 		"Tous les matchs du jour en direct, une ou plusieurs compétitions."
 	],
 	[
 		"rugby-live-timeline-card",
-		nt,
+		rt,
 		"Rugby Live – Fil du match",
 		"Frise des actions du match, la plus récente en haut."
 	],
 	[
 		"rugby-live-fixtures-card",
-		qe,
+		Je,
 		"Rugby Live – Calendrier",
 		"Prochains matchs et derniers résultats d'une compétition ou d'une équipe."
 	]
 ];
-for (let [e, t, n, r] of rt) customElements.get(e) || customElements.define(e, t), window.customCards = window.customCards || [], window.customCards.some((t) => t.type === e) || window.customCards.push({
-	type: e,
-	name: n,
-	description: r,
-	documentationURL: "https://github.com/Kenny3231/rugby_live-ha"
-});
+function at() {
+	for (let [e, t, n, r] of it) customElements.get(e) || customElements.define(e, t), window.customCards = window.customCards || [], window.customCards.some((t) => t.type === e) || window.customCards.push({
+		type: e,
+		name: n,
+		description: r,
+		documentationURL: "https://github.com/Kenny3231/rugby_live-ha"
+	});
+}
+var ot = () => !document.querySelector("home-assistant") || !!customElements.get("home-assistant");
+if (ot()) at();
+else {
+	let e = setInterval(() => {
+		ot() && (clearInterval(e), at());
+	}, 50);
+}
 //#endregion

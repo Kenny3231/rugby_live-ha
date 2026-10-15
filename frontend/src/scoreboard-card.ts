@@ -4,7 +4,7 @@ import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { keyed } from 'lit/directives/keyed.js';
 import type { Hass, HassEntity } from './hass';
 import {
-  BREAKDOWN, COMP, LIVE, RugbyEntities, baseStyles, deviceSelector, logo, untilKickoff, usable, watchedChanged,
+  BREAKDOWN, COMP, LIVE, RugbyEntities, baseStyles, teamSelector, logo, untilKickoff, usable, watchedChanged,
   type Attrs, type Counters,
 } from './common';
 
@@ -34,15 +34,15 @@ export class RugbyLiveScoreboardCard extends LitElement {
 
   static getConfigForm() {
     const labels: Record<string, string> = {
-      device: 'Équipe (appareil)', show_logos: 'Logos', show_counters: 'Compteurs (essais, cartons…)', compact: 'Compact',
+      device: 'Équipe favorite ou Match suivi', show_logos: 'Logos', show_counters: 'Compteurs (essais, cartons…)', compact: 'Compact',
     };
     return {
       schema: [
-        { name: 'device', selector: deviceSelector },
+        { name: 'device', selector: teamSelector },
         { type: 'grid', name: '', schema: ['show_logos', 'show_counters', 'compact'].map((name) => ({ name, selector: { boolean: {} } })) },
       ],
       computeLabel: (s: { name: string }) => labels[s.name],
-      computeHelper: (s: { name: string }) => (s.name === 'device' ? 'Vide : première équipe favorite.' : undefined),
+      computeHelper: (s: { name: string }) => (s.name === 'device' ? 'Équipe favorite ou « Match suivi ». Vide : première équipe favorite.' : undefined),
     };
   }
 

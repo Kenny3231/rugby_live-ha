@@ -24,10 +24,26 @@ const CARDS: [string, CustomElementConstructor, string, string][] = [
     "Prochains matchs et derniers résultats d'une compétition ou d'une équipe."],
 ];
 
-for (const [tag, cls, name, description] of CARDS) {
-  if (!customElements.get(tag)) customElements.define(tag, cls);
-  window.customCards = window.customCards || [];
-  if (!window.customCards.some((c) => c.type === tag)) {
-    window.customCards.push({ type: tag, name, description, documentationURL: 'https://github.com/Kenny3231/rugby_live-ha' });
+function register() {
+  for (const [tag, cls, name, description] of CARDS) {
+    if (!customElements.get(tag)) customElements.define(tag, cls);
+    window.customCards = window.customCards || [];
+    if (!window.customCards.some((c) => c.type === tag)) {
+      window.customCards.push({ type: tag, name, description, documentationURL: 'https://github.com/Kenny3231/rugby_live-ha' });
+    }
   }
+}
+
+// HA imports this module next to its own app, which swaps window.customElements for its
+// own registry: cards defined before the swap stay invisible to HA ("Custom element doesn't
+// exist", seen on cold page loads on 15/10). Inside HA, wait until HA has defined its root
+// element (the swap is done by then); elsewhere (the website demo), register at once.
+const ready = () => !document.querySelector('home-assistant') || !!customElements.get('home-assistant');
+if (ready()) register();
+else {
+  const timer = setInterval(() => {
+    if (!ready()) return;
+    clearInterval(timer);
+    register();
+  }, 50);
 }

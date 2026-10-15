@@ -2,7 +2,7 @@
 // colour). Source: the `events` attribute of the device's last event sensor.
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import type { Hass } from './hass';
-import { COMP, RugbyEntities, baseStyles, deviceSelector, watchedChanged, type Attrs } from './common';
+import { COMP, RugbyEntities, baseStyles, teamSelector, watchedChanged, type Attrs } from './common';
 
 interface TimelineConfig {
   type: string;
@@ -33,18 +33,18 @@ export class RugbyLiveTimelineCard extends LitElement {
 
   static getConfigForm() {
     const labels: Record<string, string> = {
-      device: 'Match (appareil)', show_subs: 'Afficher les remplacements', limit: "Nombre d'actions",
+      device: 'Équipe favorite ou Match suivi', show_subs: 'Afficher les remplacements', limit: "Nombre d'actions",
     };
     return {
       schema: [
-        { name: 'device', selector: deviceSelector },
+        { name: 'device', selector: teamSelector },
         { type: 'grid', name: '', schema: [
           { name: 'show_subs', selector: { boolean: {} } },
           { name: 'limit', selector: { number: { min: 3, max: 60, mode: 'box' } } },
         ] },
       ],
       computeLabel: (s: { name: string }) => labels[s.name],
-      computeHelper: (s: { name: string }) => (s.name === 'device' ? 'Vide : Match suivi.' : undefined),
+      computeHelper: (s: { name: string }) => (s.name === 'device' ? 'Équipe favorite ou « Match suivi ». Vide : Match suivi.' : undefined),
     };
   }
 

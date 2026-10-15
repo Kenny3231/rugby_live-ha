@@ -323,6 +323,7 @@ class AnimationSensor(TeamEntity, SensorEntity):
         if anim is None:
             return {}
         keys = (
+            "match_id",
             "team_id",
             "team_name",
             "side",
