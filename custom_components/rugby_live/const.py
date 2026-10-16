@@ -13,7 +13,6 @@ CONF_POLL_PREMATCH = "poll_prematch"
 CONF_PREMATCH_WINDOW = "prematch_window"
 CONF_POLL_IDLE = "poll_idle"
 CONF_POSTMATCH_GRACE = "postmatch_grace"
-CONF_SINBIN_MINUTES = "sinbin_minutes"
 CONF_SHOW_SUBSTITUTIONS = "show_substitutions"
 CONF_BROADCAST_CALENDAR = "broadcast_calendar"  # optional calendar, event location = channel
 CONF_ANIMATION_SECONDS = "animation_seconds"
@@ -37,7 +36,6 @@ DEFAULT_OPTIONS = {
     CONF_PREMATCH_WINDOW: 30,
     CONF_POLL_IDLE: 900,
     CONF_POSTMATCH_GRACE: 15,
-    CONF_SINBIN_MINUTES: 10,
     CONF_SHOW_SUBSTITUTIONS: False,
     CONF_ANIMATION_SECONDS: 20,
     CONF_BG_TRY: ["rays", "beams"],

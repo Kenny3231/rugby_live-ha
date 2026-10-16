@@ -35,7 +35,6 @@
           "prematch_window": "Pre-match window",
           "poll_idle": "Polling without match",
           "postmatch_grace": "Follow-up after full time",
-          "sinbin_minutes": "Yellow card length",
           "show_substitutions": "Publish substitutions as events",
           "broadcast_calendar": "TV broadcast calendar (event location = channel)",
           "animation_seconds": "Animation length",
@@ -129,9 +128,6 @@
     "binary_sensor": {
       "playing": {
         "name": "Playing"
-      },
-      "sin_bin": {
-        "name": "Sin bin"
       }
     },
     "event": {

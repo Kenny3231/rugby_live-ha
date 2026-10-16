@@ -29,12 +29,6 @@
     "binary_sensor": {
       "playing": {
         "default": "mdi:rugby"
-      },
-      "sin_bin": {
-        "default": "mdi:card",
-        "state": {
-          "on": "mdi:cards"
-        }
       }
     },
     "event": {

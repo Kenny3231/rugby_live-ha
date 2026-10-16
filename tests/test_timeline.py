@@ -128,14 +128,12 @@ def test_catch_up_is_visible_but_never_emitted() -> None:
     assert vis.home_score == 5 and vis.status is MatchStatus.SECOND_HALF
 
 
-def test_minute_sin_bin_and_stoppage() -> None:
+def test_minute_and_stoppage() -> None:
     tl = MatchTimeline("604400", HOME, AWAY)
     tl.ingest_status(MatchStatus.FIRST_HALF, at(0))
     tl.ingest_plays([play("1", PlayType.YELLOW_CARD, AWAY, 1200, 0, 0)], at(0))
     vis = tl.visible(at(60), 0, KICKOFF)
     assert vis.minute == 22 and vis.minute_source == "play_clock"
-    assert [e.play_id for e in vis.sin_bin["away"]] == ["1"]
-    assert tl.visible(at(700), 0, KICKOFF).sin_bin["away"] == []  # 10 min later
     late = tl.visible(at(2000), 0, KICKOFF)
     assert late.minute == 40 and late.stoppage
 

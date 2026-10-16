@@ -128,10 +128,10 @@ const fixture = (id, h, a, kickoff, status = 'scheduled', hs = 0, as = 0, extra 
 const ENTITIES = Object.fromEntries([
   ['sensor.match_suivi_statut_du_match', 'follow', 'match_status'], ['sensor.match_suivi_score', 'follow', 'score'],
   ['sensor.match_suivi_minute', 'follow', 'minute'], ['sensor.match_suivi_dernier_evenement', 'follow', 'last_event'],
-  ['sensor.match_suivi_animation', 'follow', 'animation'], ['binary_sensor.match_suivi_carton_jaune_en_cours', 'follow', 'sin_bin'],
+  ['sensor.match_suivi_animation', 'follow', 'animation'],
   ['sensor.stade_toulousain_statut_du_match', 'fav', 'match_status'], ['sensor.stade_toulousain_score', 'fav', 'score'],
   ['sensor.stade_toulousain_minute', 'fav', 'minute'], ['sensor.stade_toulousain_dernier_evenement', 'fav', 'last_event'],
-  ['binary_sensor.stade_toulousain_carton_jaune_en_cours', 'fav', 'sin_bin'], ['sensor.stade_toulousain_prochain_match', 'fav', 'next_match'],
+  ['sensor.stade_toulousain_prochain_match', 'fav', 'next_match'],
   ['sensor.top_14_matchs_en_direct', 'top14', 'live_matches'], ['sensor.top_14_prochain_match', 'top14', 'next_match'],
 ].map(([id, device_id, translation_key]) => [id, { entity_id: id, device_id, translation_key, platform: 'rugby_live' }]));
 
@@ -240,7 +240,6 @@ export class Sim {
   hass() {
     const vis = this._visible();
     const status = this.status();
-    const live = LIVE.includes(status);
     const vclock = this.shownClock();
     const minute = status === 'scheduled' ? null : minuteOf(vclock);
     const display = status === 'half_time' ? 'MT' : minute == null ? null : `${minute}'`;
@@ -264,16 +263,6 @@ export class Sim {
       ? { state: `${LABEL[lastEv.type]} — ${lastEv.player} (${lastEv.minute}')`, last_changed: iso(lastEv.visible),
         attributes: { type: lastEv.type, side: sideOf(lastEv), player: lastEv.player, minute: lastEv.minute, events } }
       : { state: 'unknown', attributes: { events: [] } };
-
-    const sinbin = { home_players: [], away_players: [] };
-    if (live) {
-      for (const e of vis) {
-        if (e.type === 'yellow_card' && minute < e.minute + 10) {
-          sinbin[`${sideOf(e)}_players`].push({ name: e.player, since_minute: e.minute, until_minute: e.minute + 10 });
-        }
-      }
-    }
-    const binOn = sinbin.home_players.length + sinbin.away_players.length > 0;
 
     const statusAttrs = { competition: 'top14', kickoff: iso(this.kickoff), venue: MATCH.venue, channel: MATCH.channel,
       home_away: 'home', team_id: H.id, team_name: H.name, opponent_name: A.name };
@@ -306,19 +295,16 @@ export class Sim {
     const nextFavState = { state: 'unknown', attributes: { team_id: H.id, team_name: H.name } };
 
     const minuteState = { state: minute == null ? 'unknown' : String(minute), attributes: { display } };
-    const sinState = { state: binOn ? 'on' : 'off', attributes: sinbin };
     const next = {
       'sensor.match_suivi_statut_du_match': { state: status, attributes: statusAttrs },
       'sensor.match_suivi_score': { state: `${hs} - ${as}`, attributes: score },
       'sensor.match_suivi_minute': minuteState,
       'sensor.match_suivi_dernier_evenement': lastEvent,
       'sensor.match_suivi_animation': anim,
-      'binary_sensor.match_suivi_carton_jaune_en_cours': sinState,
       'sensor.stade_toulousain_statut_du_match': { state: status, attributes: statusAttrs },
       'sensor.stade_toulousain_score': { state: `${hs} - ${as}`, attributes: score },
       'sensor.stade_toulousain_minute': minuteState,
       'sensor.stade_toulousain_dernier_evenement': lastEvent,
-      'binary_sensor.stade_toulousain_carton_jaune_en_cours': sinState,
       'sensor.stade_toulousain_prochain_match': nextFavState,
       'sensor.top_14_matchs_en_direct': { state: String(today.filter((m) => LIVE.includes(m.status)).length),
         attributes: { matches: today } },

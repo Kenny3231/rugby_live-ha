@@ -14,11 +14,11 @@ are visible at once and never emitted.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
-from .models import LIVE_STATUSES, MatchStatus, Play, PlayType
+from .models import MatchStatus, Play, PlayType
 
 # Measured on 2026-10-10 (Perpignan-Vannes): ESPN re-entered a whole half; versions of
 # one play kept type, team and athlete but moved by up to 6 min of game clock, and could
@@ -70,7 +70,6 @@ class Visible:
     minute: int | None
     minute_source: str | None
     stoppage: bool  # minute capped at 40/80: show "40+" / "80+"
-    sin_bin: dict[str, list[TimelineEvent]] = field(default_factory=dict)  # side -> cards
     provisional: bool = False  # score taken from a play the scoreboard has not confirmed yet
 
 
@@ -211,9 +210,7 @@ class MatchTimeline:
 
     # ------------------------------------------------------------------- state
 
-    def visible(
-        self, now: datetime, delay: float, kickoff: datetime, sinbin_seconds: float = 600
-    ) -> Visible:
+    def visible(self, now: datetime, delay: float, kickoff: datetime) -> Visible:
         cutoff = now - timedelta(seconds=delay)
         events = sorted(
             (ev for ev in self.events.values() if _visible(ev, cutoff)),
@@ -243,18 +240,7 @@ class MatchTimeline:
             home, away = max(home, last.home_score), max(away, last.away_score)
 
         minute, source, stoppage = self._minute(events, statuses, status, cutoff, kickoff)
-        sin_bin: dict[str, list[TimelineEvent]] = {"home": [], "away": []}
-        if status in LIVE_STATUSES and minute is not None:
-            game_now = (minute - 1) * 60
-            for ev in events:
-                side = self.side(ev.team_id)
-                if (
-                    ev.type == PlayType.YELLOW_CARD
-                    and side
-                    and ev.clock + sinbin_seconds > game_now
-                ):
-                    sin_bin[side].append(ev)
-        return Visible(status, home, away, events, minute, source, stoppage, sin_bin, provisional)
+        return Visible(status, home, away, events, minute, source, stoppage, provisional)
 
     def _minute(
         self,

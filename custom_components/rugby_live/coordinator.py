@@ -50,7 +50,6 @@ from .const import (
     CONF_POSTMATCH_GRACE,
     CONF_PREMATCH_WINDOW,
     CONF_SHOW_SUBSTITUTIONS,
-    CONF_SINBIN_MINUTES,
     DEFAULT_OPTIONS,
     DOMAIN,
     EVENT_DELAYED,
@@ -529,11 +528,9 @@ class RugbyLiveCoordinator(DataUpdateCoordinator[None]):
                 None,
                 None,
                 False,
-                {"home": [], "away": []},
             )
         else:
-            sinbin = self.options[CONF_SINBIN_MINUTES] * 60
-            visible = tl.visible(now, self.delay, match.kickoff, sinbin)
+            visible = tl.visible(now, self.delay, match.kickoff)
         return MatchView(match, self.competition_of(match), visible)
 
     def team_match(self, team_id: str) -> Match | None:

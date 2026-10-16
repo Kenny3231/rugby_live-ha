@@ -1,5 +1,5 @@
 // rugby-live-scoreboard-card: compact score of a favourite team (or of the followed match):
-// current match, else next match; counters, cards, sin bin, colour flash on each new event.
+// current match, else next match; counters, cards, colour flash on each new event.
 import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { keyed } from 'lit/directives/keyed.js';
 import type { Hass, HassEntity } from './hass';
@@ -16,7 +16,7 @@ interface ScoreboardConfig {
   compact?: boolean;
 }
 
-const KEYS = ['match_status', 'score', 'minute', 'last_event', 'sin_bin', 'next_match'];
+const KEYS = ['match_status', 'score', 'minute', 'last_event', 'next_match'];
 
 export class RugbyLiveScoreboardCard extends LitElement {
   static properties = { hass: { attribute: false }, _config: { state: true } };
@@ -97,7 +97,6 @@ export class RugbyLiveScoreboardCard extends LitElement {
       ? html`<span class="rl-vs">VS</span>`
       : html`<span class=${a.provisional ? 'rl-prov' : ''}>${a.home_score ?? 0}<span class="rl-dash">-</span>${a.away_score ?? 0}</span>`;
     const cnt: { home?: Counters; away?: Counters } = a.counters ?? {};
-    const sinbin = this._sinbin(ents.state(dev, 'sin_bin'), sa.home_away);
     const counters = cfg.show_counters && s !== 'scheduled'
       ? html`<div class="rl-cnt"><div>${this._counters(cnt.home)}</div><div></div><div>${this._counters(cnt.away)}</div></div>`
       : nothing;
@@ -105,7 +104,6 @@ export class RugbyLiveScoreboardCard extends LitElement {
       <div class="rl-h"><span>${COMP[sa.competition] || ''}</span><span>${badge}</span></div>
       ${this._row(cfg.show_logos, a.home_logo, a.home_name, a.home_color, score, a.away_logo, a.away_name, a.away_color)}
       ${counters}
-      ${sinbin.length ? html`<div class="rl-sinbin">${sinbin.map((p) => html`<span><i class="rl-yc"></i>${p}</span>`)}</div>` : nothing}
       ${s === 'scheduled' && (sa.venue || sa.channel)
         ? html`<div class="rl-foot">${[sa.venue, sa.channel && `📺 ${sa.channel}`].filter(Boolean).join(' • ')}</div>`
         : nothing}`);
@@ -126,16 +124,6 @@ export class RugbyLiveScoreboardCard extends LitElement {
       ...Array.from({ length: c?.red_card ?? 0 }, () => html`<i class="rl-rc" title="Carton rouge"></i>`),
     ];
     return html`${parts}${cards.length ? html`<span class="rl-cards">${cards}</span>` : nothing}`;
-  }
-
-  /** Players in the sin bin, home side first: "Dupont → 52'". */
-  private _sinbin(sb: HassEntity | undefined, homeAway?: string): string[] {
-    if (!sb || sb.state !== 'on') return [];
-    const at = sb.attributes;
-    const fmt = (p: Attrs) => `${p.name || 'Joueur'} → ${p.until_minute}'`;
-    if (at.home_players || at.away_players) return [...(at.home_players ?? []), ...(at.away_players ?? [])].map(fmt);
-    const [first, second] = homeAway === 'away' ? ['opponent_players', 'players'] : ['players', 'opponent_players'];
-    return [...(at[first] ?? []), ...(at[second] ?? [])].map(fmt);
   }
 
   /** Colour flash for a new event (only while it is fresh, not on page load). */
@@ -166,7 +154,6 @@ export class RugbyLiveScoreboardCard extends LitElement {
     .rl-cards { display: inline-flex; gap: 3px; }
     .rl-yc, .rl-rc { display: inline-block; width: 9px; height: 13px; border-radius: 2px; background: #eab308; vertical-align: -2px; margin-right: 4px; }
     .rl-rc { background: #dc2626; }
-    .rl-sinbin { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 13px; }
     .rl-foot { margin-top: 10px; font-size: 13px; color: var(--secondary-text-color); text-align: center; }
     .rl-flash { position: absolute; inset: 0; pointer-events: none; background: var(--c); opacity: 0; animation: rl-flash 1.6s ease-out; }
     @keyframes rl-flash { 15% { opacity: 0.35; } 100% { opacity: 0; } }

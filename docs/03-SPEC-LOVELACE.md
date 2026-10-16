@@ -25,7 +25,7 @@
 ### 1. `rugby-live-scoreboard-card`
 
 - Deux équipes avec logo (URL ESPN `.../teamlogos/rugby/teams/500/{teamId}.png`, repli sur initiales colorées si 404 ou logo « pays » erroné), score en grand, statut (badge **LIVE** animé, MT, Terminé, coup d'envoi dans …), minute.
-- Pastilles **cartons** (jaune/rouge) sous chaque équipe, indicateur de **carton jaune en cours** avec minute de retour.
+- Pastilles **cartons** (jaune/rouge) sous chaque équipe. (Indicateur de carton jaune en cours retiré en 0.3.0 : inutile, l'exclusion se voit à l'écran.)
 - Mini-compteurs essais / transformations / pénalités.
 - Animation brève à chaque nouvel événement (flash de la couleur de l'équipe), déclenchée par l'événement du bus `rugby_live_event` (donc déjà retardé).
 - Config : `team` (appareil de l'équipe favorite, ses entités sont stables), `show_logos`, `show_counters`, `compact`.

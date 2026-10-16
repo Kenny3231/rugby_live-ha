@@ -34,7 +34,6 @@ Chaque source a son propre module client (aucun import `homeassistant`) qui renv
    - `poll_live` : intervalle en match (défaut 10 s, **minimum 10 s**).
    - `poll_prematch` : défaut 60 s ; `prematch_window` : défaut 30 min.
    - `poll_idle` : défaut 900 s ; `postmatch_grace` : défaut 15 min.
-   - `sinbin_minutes` : défaut 10.
    - `show_substitutions` : publier les remplacements comme événements (défaut `false`).
    - Compétitions et favoris modifiables.
 
@@ -67,7 +66,6 @@ Aucun appareil ni entité créé ou supprimé par match : les `entity_id` ne cha
 | `sensor.<team>_minute` | Minute **estimée** (voir « Temps de jeu »). |
 | `sensor.<team>_last_event` | Texte, ex. « Essai — Louis Carbonel (53') ». Attributs `type`, `side` (`team`/`opponent`), `player`, `minute`, et `events` (liste plafonnée des événements visibles, pour la carte timeline ; **exclue du recorder**). |
 | `binary_sensor.<team>_playing` | Allumé pendant le match. |
-| `binary_sensor.<team>_sin_bin` | Allumé si un joueur **de l'équipe** est au carton jaune. Attribut `players` [{name, since_minute, until_minute}], plus `opponent_players`. |
 | `sensor.<team>_next_match` | Timestamp du prochain match. |
 | `event.<team>_match_event` | `EventEntity`, `event_types` : `kickoff`, `try`, `conversion`, `penalty_goal`, `drop_goal`, `yellow_card`, `red_card`, `substitution`, `half_time`, `second_half`, `full_time`, `revoked`. Attribut `side`. |
 

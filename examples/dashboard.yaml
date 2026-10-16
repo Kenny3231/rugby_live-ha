@@ -75,15 +75,6 @@ views:
           ]]]
       grid_options:
         columns: 12
-    - type: tile
-      entity: binary_sensor.stade_toulousain_carton_jaune_en_cours
-      name: Carton jaune en cours
-      visibility:
-      - condition: state
-        entity: binary_sensor.stade_toulousain_carton_jaune_en_cours
-        state: 'on'
-      grid_options:
-        columns: 12
     - type: markdown
       title: Fil du match
       content: |-
@@ -169,15 +160,6 @@ views:
               ${team(a.away_logo, a.away_name, a.away_color)}
             </div>${last}</div>`;
           ]]]
-      grid_options:
-        columns: 12
-    - type: tile
-      entity: binary_sensor.match_suivi_carton_jaune_en_cours
-      name: Carton jaune en cours
-      visibility:
-      - condition: state
-        entity: binary_sensor.match_suivi_carton_jaune_en_cours
-        state: 'on'
       grid_options:
         columns: 12
     - type: markdown

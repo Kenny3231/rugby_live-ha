@@ -26,7 +26,7 @@ Les identifiants ne changent jamais d'un match à l'autre : tes automatisations 
 |---|---|
 | **Rugby Live** | `number` Retard (s), `button` Calibrer le retard, `sensor` État de l'API |
 | **Par compétition** | `sensor` Matchs en direct (attribut `matches` : tous les matchs du jour avec score, minute, logos, dernier événement), `sensor` Prochain match, `calendar` Matchs (14 jours) |
-| **Par équipe favorite** | `sensor` Statut du match, Score, Minute, Dernier événement (attribut `events` : fil du match), Prochain match ; `binary_sensor` En match, Carton jaune en cours (allumé pendant les 10 min d'exclusion, joueurs en attribut : la carte Score les affiche) ; `event` Événement du match |
+| **Par équipe favorite** | `sensor` Statut du match, Score, Minute, Dernier événement (attribut `events` : fil du match), Prochain match ; `binary_sensor` En match ; `event` Événement du match |
 
 Logos : officiels LNR pour le Top 14, ESPN pour les autres équipes.
 Photos des joueurs (animations) : LNR pour le Top 14, compositions officielles EPCR pour la Champions Cup et la Challenge Cup.

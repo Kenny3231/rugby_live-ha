@@ -1330,7 +1330,6 @@ var Ze, Qe = [
 	"score",
 	"minute",
 	"last_event",
-	"sin_bin",
 	"next_match"
 ], $e = class extends U {
 	constructor(...e) {
@@ -1405,12 +1404,11 @@ var Ze, Qe = [
         ${this._row(e.show_logos, i[`${o}_logo`], i[`${o}_name`], i[`${o}_color`], I`<span class="rl-vs">VS</span>`, i[`${s}_logo`], i[`${s}_name`], i[`${s}_color`])}
         <div class="rl-foot">${Ne(new Date(r.state))}${i.channel ? ` • 📺 ${i.channel}` : ""}</div>`);
 		}
-		let o = r.attributes, s = t.state(n, "score")?.attributes ?? {}, c = t.state(n, "minute")?.attributes.display ?? "", l = G.includes(i), u = i === "half_time" ? I`<span class="rl-badge">MI-TEMPS</span>` : l ? I`<span class="rl-live">LIVE</span> <b class="rl-min">${c}</b>` : i === "finished" ? I`<span class="rl-badge">TERMINÉ</span>` : i === "scheduled" ? I`<span>${Ne(new Date(o.kickoff))}</span>` : I`<span>${i}</span>`, d = i === "scheduled" ? I`<span class="rl-vs">VS</span>` : I`<span class=${s.provisional ? "rl-prov" : ""}>${s.home_score ?? 0}<span class="rl-dash">-</span>${s.away_score ?? 0}</span>`, f = s.counters ?? {}, p = this._sinbin(t.state(n, "sin_bin"), o.home_away), m = e.show_counters && i !== "scheduled" ? I`<div class="rl-cnt"><div>${this._counters(f.home)}</div><div></div><div>${this._counters(f.away)}</div></div>` : R;
+		let o = r.attributes, s = t.state(n, "score")?.attributes ?? {}, c = t.state(n, "minute")?.attributes.display ?? "", l = G.includes(i), u = i === "half_time" ? I`<span class="rl-badge">MI-TEMPS</span>` : l ? I`<span class="rl-live">LIVE</span> <b class="rl-min">${c}</b>` : i === "finished" ? I`<span class="rl-badge">TERMINÉ</span>` : i === "scheduled" ? I`<span>${Ne(new Date(o.kickoff))}</span>` : I`<span>${i}</span>`, d = i === "scheduled" ? I`<span class="rl-vs">VS</span>` : I`<span class=${s.provisional ? "rl-prov" : ""}>${s.home_score ?? 0}<span class="rl-dash">-</span>${s.away_score ?? 0}</span>`, f = s.counters ?? {}, p = e.show_counters && i !== "scheduled" ? I`<div class="rl-cnt"><div>${this._counters(f.home)}</div><div></div><div>${this._counters(f.away)}</div></div>` : R;
 		return a(I`${this._flash(t.state(n, "last_event"), s, o.home_away)}
       <div class="rl-h"><span>${W[o.competition] || ""}</span><span>${u}</span></div>
       ${this._row(e.show_logos, s.home_logo, s.home_name, s.home_color, d, s.away_logo, s.away_name, s.away_color)}
-      ${m}
-      ${p.length ? I`<div class="rl-sinbin">${p.map((e) => I`<span><i class="rl-yc"></i>${e}</span>`)}</div>` : R}
+      ${p}
       ${i === "scheduled" && (o.venue || o.channel) ? I`<div class="rl-foot">${[o.venue, o.channel && `📺 ${o.channel}`].filter(Boolean).join(" • ")}</div>` : R}`);
 	}
 	_row(e, t, n, r, i, a, o, s) {
@@ -1423,13 +1421,6 @@ var Ze, Qe = [
 	_counters(e) {
 		let t = je.filter(([t]) => e?.[t]).map(([t, n, r]) => I`<span><b>${e[t]}</b> ${e[t] > 1 ? r : n}</span>`), n = [...Array.from({ length: e?.yellow_card ?? 0 }, () => I`<i class="rl-yc" title="Carton jaune"></i>`), ...Array.from({ length: e?.red_card ?? 0 }, () => I`<i class="rl-rc" title="Carton rouge"></i>`)];
 		return I`${t}${n.length ? I`<span class="rl-cards">${n}</span>` : R}`;
-	}
-	_sinbin(e, t) {
-		if (!e || e.state !== "on") return [];
-		let n = e.attributes, r = (e) => `${e.name || "Joueur"} → ${e.until_minute}'`;
-		if (n.home_players || n.away_players) return [...n.home_players ?? [], ...n.away_players ?? []].map(r);
-		let [i, a] = t === "away" ? ["opponent_players", "players"] : ["players", "opponent_players"];
-		return [...n[i] ?? [], ...n[a] ?? []].map(r);
 	}
 	_flash(e, t, n) {
 		if (!e?.last_changed || Date.now() - Date.parse(e.last_changed) > 4e3) return R;
@@ -1459,7 +1450,6 @@ Ze = $e, Ze.properties = {
     .rl-cards { display: inline-flex; gap: 3px; }
     .rl-yc, .rl-rc { display: inline-block; width: 9px; height: 13px; border-radius: 2px; background: #eab308; vertical-align: -2px; margin-right: 4px; }
     .rl-rc { background: #dc2626; }
-    .rl-sinbin { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 13px; }
     .rl-foot { margin-top: 10px; font-size: 13px; color: var(--secondary-text-color); text-align: center; }
     .rl-flash { position: absolute; inset: 0; pointer-events: none; background: var(--c); opacity: 0; animation: rl-flash 1.6s ease-out; }
     @keyframes rl-flash { 15% { opacity: 0.35; } 100% { opacity: 0; } }
